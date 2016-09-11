@@ -9,7 +9,7 @@ defmodule Fluxspace do
 
       supervisor(Fluxspace.InventorySupervisor, [], name: Fluxspace.InventorySupervisor),
       supervisor(Fluxspace.RegionSupervisor, [], name: Fluxspace.RegionSupervisor),
-      worker(Fluxspace.PlayerRegistry, [], name: Fluxspace.PlayerRegistry)
+      worker(Fluxspace.PlayerRegistry, [[], [name: Fluxspace.PlayerRegistry]])
     ]
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]
