@@ -1,4 +1,5 @@
 # Fluxspace
 
-### MUD-like MMORPG
---
+### Browser-based MUD-like MMORPG
+
+---
