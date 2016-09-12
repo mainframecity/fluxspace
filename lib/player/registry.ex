@@ -1,4 +1,4 @@
-defmodule Fluxspace.PlayerRegistry do
+defmodule Fluxspace.Player.Registry do
   @moduledoc """
   Manages the current location of a player entity.
   (The PID of the current Region and current Room)

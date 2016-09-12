@@ -7,9 +7,9 @@ defmodule Fluxspace do
     children = [
       supervisor(Fluxspace.Endpoint, []),
 
-      supervisor(Fluxspace.InventorySupervisor, [], name: Fluxspace.InventorySupervisor),
-      supervisor(Fluxspace.RegionSupervisor, [], name: Fluxspace.RegionSupervisor),
-      worker(Fluxspace.PlayerRegistry, [[], [name: Fluxspace.PlayerRegistry]])
+      supervisor(Fluxspace.Region.Supervisor, [], name: Fluxspace.Region.Supervisor),
+      worker(Fluxspace.Inventory.Supervisor, [[], [name: Fluxspace.Inventory.Supervisor]]),
+      worker(Fluxspace.Player.Registry, [[], [name: Fluxspace.Player.Registry]])
     ]
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]

@@ -1,4 +1,4 @@
-defmodule Fluxspace.RegionSupervisor do
+defmodule Fluxspace.Region.Supervisor do
   @moduledoc """
   Supervisor that manages all the Region instances.
   """
