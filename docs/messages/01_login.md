@@ -1,3 +1,5 @@
+### Login Packets
+
 `server_status (Server-bound)`
 
 ```elixir

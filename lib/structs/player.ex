@@ -1,3 +1,12 @@
 defmodule Fluxspace.Structs.Player do
-  defstruct [:id, :uuid, :name, :access_token]
+  @moduledoc """
+  This struct represents a player.
+  """
+
+  defstruct [
+    :id,
+    :uuid,
+    :name,
+    :access_token
+  ]
 end

@@ -1,3 +1,12 @@
 defmodule Fluxspace.Structs.Item do
-  defstruct [:id, :uuid, :name, :weight, :value]
+  @moduledoc """
+  This struct represents a physical item.
+  """
+
+  defstruct [:id,
+   :uuid,
+   :name,
+   :weight,
+   :value
+ ]
 end
