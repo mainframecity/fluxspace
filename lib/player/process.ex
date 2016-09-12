@@ -6,31 +6,26 @@ defmodule Fluxspace.Player.Process do
 
   use GenServer
 
-  def start_link(_state, opts \\ []) do
-    GenServer.start_link(__MODULE__, %{}, opts)
+  alias Fluxspace.Structs.{Player, Inventory}
+
+  def start_link(player, opts \\ []) do
+    state = %{
+      "player" => player,
+      "inventory" => %Inventory{}
+    }
+
+    GenServer.start_link(__MODULE__, state, opts)
   end
 
-  def add_player(player) do
-    GenServer.cast(__MODULE__, {:add_player, player})
+  def get_inventory(pid, player) do
+    GenServer.call(pid, :get_inventory)
   end
 
-  def remove_player(player) do
-    GenServer.call(__MODULE__, {:remove_player, player})
-  end
+  # ---
+  # GenServer Callbacks
+  # ---
 
-  def get_player(player) do
-    GenServer.call(__MODULE__, {:get_player, player})
-  end
-
-  def handle_cast({:add_player, player}, state) do
-    {:noreply, Map.put(state, player.uuid, self())}
-  end
-
-  def handle_call({:remove_player, player}, _from, state) do
-    {:reply, player, Map.delete(state, player.uuid)}
-  end
-
-  def handle_call({:get_player, player}, _from, state) do
-    {:reply, Map.get(state, player.uuid), state}
+  def handle_call(:get_inventory, _from, state) do
+    {:reply, state["inventory"], state}
   end
 end
