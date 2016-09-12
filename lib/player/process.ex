@@ -6,7 +6,7 @@ defmodule Fluxspace.Player.Process do
 
   use GenServer
 
-  alias Fluxspace.Structs.{Player, Inventory}
+  alias Fluxspace.Structs.Inventory
 
   def start_link(player, opts \\ []) do
     state = %{
@@ -17,7 +17,7 @@ defmodule Fluxspace.Player.Process do
     GenServer.start_link(__MODULE__, state, opts)
   end
 
-  def get_inventory(pid, player) do
+  def get_inventory(pid) do
     GenServer.call(pid, :get_inventory)
   end
 
