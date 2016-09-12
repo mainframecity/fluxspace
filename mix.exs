@@ -17,7 +17,7 @@ defmodule Fluxspace.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Fluxspace, []},
-     applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger, :gettext]]
+     applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger, :gettext, :gen_stage]]
   end
 
   # Specifies which paths to compile per environment.
@@ -28,9 +28,13 @@ defmodule Fluxspace.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.2.1"},
-     {:phoenix_pubsub, "~> 1.0"},
-     {:gettext, "~> 0.11"},
-     {:cowboy, "~> 1.0"}]
+    [
+      {:phoenix, "~> 1.2.1"},
+      {:phoenix_pubsub, "~> 1.0"},
+      {:gettext, "~> 0.11"},
+      {:cowboy, "~> 1.0"},
+      {:uuid, "~> 1.1"},
+      {:gen_stage, "~> 0.4"}
+    ]
   end
 end
