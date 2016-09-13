@@ -105,4 +105,40 @@ defmodule Fluxspace.GenSyncTest do
     assert_receive {:got, :call_set}
     assert_receive {:got, :change}
   end
+
+  test "Can remove handler", %{handler: pid} do
+    assert GenSync.has_handler?(pid, TestHandler) == true
+    :ok = GenSync.remove_handler(pid, TestHandler)
+    assert GenSync.has_handler?(pid, TestHandler) == false
+  end
+
+  test "Stopping a handler is handled", %{handler: pid} do
+    assert GenSync.has_handler?(pid, TestHandler) == true
+
+    # Sending a stop should stop this handler
+    GenSync.notify(pid, :stop)
+    assert_receive {:got, :stop}
+    assert_receive {:got, :terminate, :some_reason}
+
+    # And now sending a message will not be handled
+    assert GenSync.has_handler?(pid, TestHandler) == false
+    GenSync.notify(pid, :bar)
+    refute_receive _
+
+    # And then we can add the handler back
+    GenSync.put_handler(pid, TestHandler, self)
+    assert GenSync.has_handler?(pid, TestHandler) == true
+    GenSync.notify(pid, :bar)
+    assert_receive {:got, :bar}
+  end
+
+
+  test "handler terminated when GenSync terminates", %{handler: pid} do
+    Process.exit(pid, :normal)
+    assert_receive {:got, :terminate, :normal}
+
+    # send normal event, now shouldnt respond
+    GenSync.notify(pid, :bar)
+    refute_receive {:got, :bar}
+  end
 end
