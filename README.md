@@ -1,5 +1,7 @@
 # Fluxspace
 
+[![CircleCI](https://circleci.com/gh/andrewvy/fluxspace.svg?style=shield)](https://circleci.com/gh/andrewvy/fluxspace)
+
 ### Browser-based MUD-like MMORPG
 
 ---
