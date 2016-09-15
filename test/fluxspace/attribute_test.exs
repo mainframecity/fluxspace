@@ -52,4 +52,32 @@ defmodule Fluxspace.AttributeTest do
     assert false == Attribute.has?(entity_pid, Attribute)
     assert true == Attribute.has?(entity_pid, Life)
   end
+
+  test "fetch returns behaviour" do
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    entity_pid |> Attribute.register
+    entity_pid |> Life.register
+
+    assert {:ok, %Life{health: 100}} == entity_pid |> Attribute.fetch(Life)
+  end
+
+  test "update a behaviour" do
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    entity_pid |> Attribute.register
+    entity_pid |> Life.register
+
+    assert {:ok, %Life{health: 100}} == entity_pid |> Attribute.fetch(Life)
+    entity_pid |> Attribute.update(Life, fn(life) -> %Life{life | health: 80} end)
+    assert {:ok, %Life{health: 80}} == entity_pid |> Attribute.fetch(Life)
+  end
+
+  test "remove a behaviour" do
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    entity_pid |> Attribute.register
+    entity_pid |> Life.register
+
+    assert {:ok, %Life{health: 100}} == entity_pid |> Attribute.fetch(Life)
+    entity_pid |> Attribute.remove(Life)
+    assert :error == entity_pid |> Attribute.fetch(Life)
+  end
 end
