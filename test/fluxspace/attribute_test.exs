@@ -1,6 +1,6 @@
-alias Fluxspace.{Entity, Radio}
+alias Fluxspace.{Entity, Attribute}
 
-defmodule Fluxspace.EntityTest do
+defmodule Fluxspace.AttributeTest do
   use ExUnit.Case
 
   defmodule Life do
@@ -44,23 +44,12 @@ defmodule Fluxspace.EntityTest do
     end
   end
 
-  test "Starting an entity gives and registers by UUID" do
-    {:ok, entity_uuid, entity_pid} = Entity.start_plain("hello")
-
-    assert entity_uuid == "hello"
-    assert entity_pid == :gproc.lookup_pid({:n, :l, entity_uuid})
-  end
-
-  test "Can add/remove handler/behaviour to Entity" do
-    {:ok, _entity_uuid, entity_pid} = Entity.start_plain
+  test "has? returns boolean" do
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    entity_pid |> Attribute.register
     entity_pid |> Life.register
-    entity_pid |> Radio.register(__MODULE__)
 
-    assert 100 == Entity.call_behaviour(entity_pid, Life.Behaviour, :health)
-    assert 80 == Entity.call_behaviour(entity_pid, Life.Behaviour, {:damage, 20})
-    assert 0 == Entity.call_behaviour(entity_pid, Life.Behaviour, {:damage, 100})
-
-    entity_pid |> Life.unregister
-    assert {:error, :not_found} == Entity.call_behaviour(entity_pid, Life.Behaviour, {:damage, 100})
+    assert false == Attribute.has?(entity_pid, Attribute)
+    assert true == Attribute.has?(entity_pid, Life)
   end
 end
