@@ -5,6 +5,8 @@ defmodule Fluxspace.Lib.RoomTest do
   alias Fluxspace.Lib.Room
 
   defmodule Test do
+    defstruct [:test_pid]
+
     def register(entity_pid, opts \\ %{}) do
       Entity.put_behaviour(entity_pid, Test.Behaviour, opts)
     end
@@ -16,16 +18,19 @@ defmodule Fluxspace.Lib.RoomTest do
     defmodule Behaviour do
       use Entity.Behaviour
 
-      def init(_state, opts), do: {:ok, opts.test_pid}
-
-      def handle_event(:from_room, test_pid) do
-        send(test_pid, :got)
-        {:ok, test_pid}
+      def init(entity, opts) do
+        {:ok, entity |> put_attribute(%Test{test_pid: opts.test_pid})}
       end
 
-      def handle_event(:to_room, test_pid) do
-        Radio.notify_locally(self(), :from_entity)
-        {:ok, test_pid}
+      def handle_event(:from_room, entity) do
+        test = entity |> get_attribute(Test)
+        send(test.test_pid, :got)
+        {:ok, entity}
+      end
+
+      def handle_event(:to_room, entity) do
+        Radio.notify_all(self(), :from_entity)
+        {:ok, entity}
       end
     end
   end
@@ -58,5 +63,10 @@ defmodule Fluxspace.Lib.RoomTest do
     Room.notify(room_uuid, :from_room)
 
     assert_receive :got
+  end
+
+  test "Cannot add a room to a room", %{room_pid: room_pid} do
+    {:ok, _, room2_pid} = Room.create([])
+    assert :error == Room.add_entity(room_pid, room2_pid)
   end
 end

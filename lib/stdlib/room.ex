@@ -24,7 +24,11 @@ defmodule Fluxspace.Lib.Room do
   end
 
   def add_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
-    Radio.notify(room_pid, {:add_entity, entity_pid})
+    with false <- Entity.has_behaviour?(entity_pid, Room.Behaviour) do
+      Radio.notify(room_pid, {:add_entity, entity_pid})
+    else
+      _ -> :error
+    end
   end
 
   def remove_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
@@ -51,14 +55,10 @@ defmodule Fluxspace.Lib.Room do
     end
 
     def handle_event({:add_entity, entity_pid}, entity) do
-      Radio.register_observer(self(), entity_pid)
-
       {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: [entity_pid | room.entities]} end)}
     end
 
     def handle_event({:remove_entity, entity_pid}, entity) do
-      Radio.register_observer(self(), entity_pid)
-
       {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: Enum.reject(room.entities, &(&1 == entity_pid))} end)}
     end
 
