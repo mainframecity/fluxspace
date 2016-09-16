@@ -1,28 +1,37 @@
 alias Fluxspace.{Radio, Entity}
 
 defmodule Fluxspace.Lib.Room do
-  use Entity.Behaviour
-
   alias Fluxspace.Lib.Room
 
   defstruct name: "A Room", entities: []
 
-  def create(args) do
-    {:ok, entity_uuid, entity_pid} = super(args)
-
+  @doc """
+  Helper method for creating an plain entity that comes with a pre-installed Room.Behaviour.
+  """
+  def create do
+    {:ok, entity_uuid, entity_pid} = Entity.start_plain()
     entity_pid |> register
 
     {:ok, entity_uuid, entity_pid}
   end
 
+  @doc """
+  Registers a Room.Behaviour to an Entity.
+  """
   def register(entity_pid) do
     Entity.put_behaviour(entity_pid, Room.Behaviour, [])
   end
 
+  @doc """
+  Unregisters a Room.Behaviour from an Entity.
+  """
   def unregister(entity_pid) do
     Entity.remove_behaviour(entity_pid, Room.Behaviour)
   end
 
+  @doc """
+  Adds an entity to a room.
+  """
   def add_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
     with false <- Entity.has_behaviour?(entity_pid, Room.Behaviour) do
       Radio.notify(room_pid, {:add_entity, entity_pid})
@@ -31,14 +40,23 @@ defmodule Fluxspace.Lib.Room do
     end
   end
 
+  @doc """
+  Removes an entity from a room.
+  """
   def remove_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
     Radio.notify(room_pid, {:remove_entity, entity_pid})
   end
 
+  @doc """
+  Gets all entities from a room.
+  """
   def get_entities(room_pid) when is_pid(room_pid) do
     Entity.call_behaviour(room_pid, Room.Behaviour, :get_entities)
   end
 
+  @doc """
+  Notifies all entities in a room.
+  """
   def notify(room_pid, message) when is_pid(room_pid) do
     Radio.notify(room_pid, {:notify, message})
   end

@@ -37,7 +37,7 @@ defmodule Fluxspace.Lib.RoomTest do
   end
 
   setup do
-    {:ok, room_uuid, room_pid} = Room.create([])
+    {:ok, room_uuid, room_pid} = Room.create()
     {:ok, [room_uuid: room_uuid, room_pid: room_pid]}
   end
 
@@ -74,7 +74,7 @@ defmodule Fluxspace.Lib.RoomTest do
   end
 
   test "Cannot add a room to a room", %{room_pid: room_pid} do
-    {:ok, _, room2_pid} = Room.create([])
+    {:ok, _, room2_pid} = Room.create()
     assert :error == Room.add_entity(room_pid, room2_pid)
   end
 end

@@ -1,6 +1,8 @@
 defmodule Fluxspace.Radio do
   @moduledoc """
-  Observes entities and propagates their state changes to different channels.
+  This Attribute/Behaviour, when added to an entity, allows other entities
+  to be added as an observer to it. The observable entity is then able to
+  notify all observers and send it any messages.
 
   Heavily copied/inspired from:
   https://github.com/entice/entity/blob/master/lib/entice/coordination.ex
@@ -11,22 +13,39 @@ defmodule Fluxspace.Radio do
   alias Fluxspace.Entity
   alias Fluxspace.Radio
 
+  @doc """
+  Adds the Radio.Behaviour to an Entity.
+  """
   def register(entity_pid) do
     Entity.put_behaviour(entity_pid, Radio.Behaviour, [])
   end
 
+  @doc """
+  Removes the Radio.Behaviour from an Entity.
+  """
   def unregister(entity_pid) do
     Entity.remove_behaviour(entity_pid, Radio.Behaviour)
   end
 
+  @doc """
+  Registers an Entity as an observer to this Entity, allowing it to be
+  notified by any broadcasted messages.
+  """
   def register_observer(observer_pid, observable_pid) when is_pid(observable_pid) and is_pid(observable_pid) do
     observable_pid |> notify({:add_observer, observer_pid})
   end
 
+  @doc """
+  Unregisters an Entity as an observer of this Entity.
+  """
   def unregister_observer(observer_pid, observable_pid) when is_pid(observable_pid) and is_pid(observable_pid) do
     observable_pid |> notify({:remove_observer, observer_pid})
   end
 
+  @doc """
+  Sends an event to an entity. Handled by 'handle_event' by a Behaviour
+  on the entity.
+  """
   def notify(entity, message) when is_pid(entity) do
     send(entity, message)
     :ok
@@ -37,6 +56,9 @@ defmodule Fluxspace.Radio do
     notify(Entity.locate_pid!(entity_uuid), message)
   end
 
+  @doc """
+  Broadcasts a message to all observers.
+  """
   def notify_all(entity_pid, message) when is_pid(entity_pid) do
     notify(entity_pid, {:notify_observers, message})
   end
@@ -44,8 +66,6 @@ defmodule Fluxspace.Radio do
   def notify_all(entity_uuid, message) do
     notify_all(Entity.locate_pid!(entity_uuid), message)
   end
-
-  def get_all(channel), do: :pg2.get_members(channel)
 
   defmodule Behaviour do
     use Fluxspace.Entity.Behaviour

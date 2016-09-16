@@ -10,25 +10,34 @@ defmodule Fluxspace.Entity do
 
   use GenSync
 
-  alias Fluxspace.{Entity, Radio}
+  alias Fluxspace.{Entity, Radio, Attribute}
 
+  @doc """
+  Gives you an Entity.
+  """
   def start, do: start(UUID.uuid4())
   def start(entity_uuid), do: start(entity_uuid, %{})
-
   def start(entity_uuid, attributes) when is_map(attributes) do
     {:ok, ^entity_uuid, pid} = start_plain(entity_uuid, attributes)
     {:ok, entity_uuid, pid}
   end
 
+  @doc """
+  Gives you a plain entity with a Radio.Behaviour and an Attribute.Behaviour.
+  """
   def start_plain(entity_uuid \\ UUID.uuid4(), attributes \\ %{}) do
     {:ok, pid} = GenSync.start_link(%Entity{uuid: entity_uuid, attributes: attributes})
 
     :gproc.reg_other({:n, :l, entity_uuid}, pid)
     pid |> Radio.register
+    pid |> Attribute.register
 
     {:ok, entity_uuid, pid}
   end
 
+  @doc """
+  Returns a PID of an entity when given its UUID.
+  """
   def locate_pid(entity_uuid) do
     try do
       pid = :gproc.lookup_pid({:n, :l, entity_uuid})
@@ -38,6 +47,9 @@ defmodule Fluxspace.Entity do
     end
   end
 
+  @doc """
+  Returns a PID of an entity when given its UUID, or throws an error.
+  """
   def locate_pid!(entity_uuid) do
     try do
       :gproc.lookup_pid({:n, :l, entity_uuid})
@@ -50,6 +62,9 @@ defmodule Fluxspace.Entity do
   # Behaviour API
   # ---
 
+  @doc """
+  Calls a Behaviour on an Entity.
+  """
   def call_behaviour(
     entity,
     behaviour,
@@ -62,6 +77,9 @@ defmodule Fluxspace.Entity do
     entity_uuid |> locate_pid_and_execute(&call_behaviour(&1, behaviour, message))
   end
 
+  @doc """
+  Checks if an Entity has a certain Behaviour.
+  """
   def has_behaviour?(
     entity,
     behaviour
@@ -73,6 +91,9 @@ defmodule Fluxspace.Entity do
     entity_uuid |> locate_pid_and_execute(&has_behaviour?(&1, behaviour))
   end
 
+  @doc """
+  Adds a Behaviour to an Entity.
+  """
   def put_behaviour(
     entity,
     behaviour,
@@ -85,6 +106,9 @@ defmodule Fluxspace.Entity do
     entity_uuid |> locate_pid_and_execute(&put_behaviour(&1, behaviour, args))
   end
 
+  @doc """
+  Removes a Behaviour from an Entity.
+  """
   def remove_behaviour(
     entity,
     behaviour
@@ -114,8 +138,6 @@ defmodule Fluxspace.Entity do
       quote do
         use GenSync
         alias Fluxspace.Entity
-
-        def create(_args), do: Entity.start_plain()
 
         def init(entity, _args), do: {:ok, entity}
 
@@ -151,7 +173,7 @@ defmodule Fluxspace.Entity do
         def attribute_transaction(%Entity{attributes: attrs} = entity, modifier) when is_function(modifier, 1),
         do: %Entity{entity | attributes: modifier.(attrs)}
 
-        defoverridable [create: 1, init: 2]
+        defoverridable [init: 2]
       end
     end
   end
