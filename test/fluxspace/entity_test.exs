@@ -54,7 +54,7 @@ defmodule Fluxspace.EntityTest do
   test "Can add/remove handler/behaviour to Entity" do
     {:ok, _entity_uuid, entity_pid} = Entity.start_plain
     entity_pid |> Life.register
-    entity_pid |> Radio.register(__MODULE__)
+    entity_pid |> Radio.register
 
     assert 100 == Entity.call_behaviour(entity_pid, Life.Behaviour, :health)
     assert 80 == Entity.call_behaviour(entity_pid, Life.Behaviour, {:damage, 20})

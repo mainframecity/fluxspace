@@ -8,25 +8,15 @@ defmodule Fluxspace.RadioTest do
 
   setup do
     {:ok, entity_uuid, _pid} = Entity.start
-    entity_uuid |> Radio.register(__MODULE__)
-
-    # Entity.put_attribute(entity_uuid, %TestAttr1{})
-    # Entity.put_attribute(entity_uuid, %TestAttr2{})
-
-    Radio.register_observer(self, __MODULE__)
+    entity_uuid |> Radio.register
 
     {:ok, [entity_uuid: entity_uuid]}
   end
 
-  test "entity join" do
-    {:ok, entity_uuid, _pid} = Entity.start_plain()
-    Radio.register(entity_uuid, __MODULE__)
-    assert_receive {
-      :entity_join,
-      %{
-        entity_uuid: ^entity_uuid,
-        attributes: %{}
-      }
-    }
+  test "Can listen on another entity", %{entity_uuid: entity_uuid} do
+    Radio.register_observer(self, Entity.locate_pid!(entity_uuid))
+    entity_uuid |> Radio.notify_all(:foo)
+
+    assert_receive :foo
   end
 end
