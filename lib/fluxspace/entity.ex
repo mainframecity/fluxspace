@@ -10,7 +10,7 @@ defmodule Fluxspace.Entity do
 
   use GenSync
 
-  alias Fluxspace.Entity
+  alias Fluxspace.{Entity, Radio}
 
   def start, do: start(UUID.uuid4())
   def start(entity_uuid), do: start(entity_uuid, %{})
@@ -22,7 +22,10 @@ defmodule Fluxspace.Entity do
 
   def start_plain(entity_uuid \\ UUID.uuid4(), attributes \\ %{}) do
     {:ok, pid} = GenSync.start_link(%Entity{uuid: entity_uuid, attributes: attributes})
+
     :gproc.reg_other({:n, :l, entity_uuid}, pid)
+    pid |> Radio.register
+
     {:ok, entity_uuid, pid}
   end
 

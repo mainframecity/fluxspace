@@ -1,7 +1,7 @@
 alias Fluxspace.{Entity, Attribute}
 
 defmodule Fluxspace.AttributeTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   defmodule Life do
     defstruct health: 100
@@ -45,7 +45,7 @@ defmodule Fluxspace.AttributeTest do
   end
 
   test "has? returns boolean" do
-    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
     entity_pid |> Attribute.register
     entity_pid |> Life.register
 
@@ -54,7 +54,7 @@ defmodule Fluxspace.AttributeTest do
   end
 
   test "fetch returns behaviour" do
-    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
     entity_pid |> Attribute.register
     entity_pid |> Life.register
 
@@ -62,7 +62,7 @@ defmodule Fluxspace.AttributeTest do
   end
 
   test "update a behaviour" do
-    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
     entity_pid |> Attribute.register
     entity_pid |> Life.register
 
@@ -72,7 +72,7 @@ defmodule Fluxspace.AttributeTest do
   end
 
   test "remove a behaviour" do
-    {:ok, _entity_uuid, entity_pid} = Entity.start_plain("hello")
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
     entity_pid |> Attribute.register
     entity_pid |> Life.register
 

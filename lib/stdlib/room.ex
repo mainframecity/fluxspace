@@ -55,10 +55,12 @@ defmodule Fluxspace.Lib.Room do
     end
 
     def handle_event({:add_entity, entity_pid}, entity) do
+      Radio.register_observer(self, entity_pid)
       {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: [entity_pid | room.entities]} end)}
     end
 
     def handle_event({:remove_entity, entity_pid}, entity) do
+      Radio.unregister_observer(self, entity_pid)
       {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: Enum.reject(room.entities, &(&1 == entity_pid))} end)}
     end
 
@@ -70,8 +72,7 @@ defmodule Fluxspace.Lib.Room do
 
       case entities do
         [] -> :ok
-        [_|_] = members ->
-          members |> Enum.map(fn pid -> send(pid, message) end)
+        [_|_] = members -> members |> Enum.map(fn pid -> send(pid, message) end)
       end
 
       {:ok, entity}
