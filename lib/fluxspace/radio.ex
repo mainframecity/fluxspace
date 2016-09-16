@@ -13,11 +13,11 @@ defmodule Fluxspace.Radio do
   def register(
     entity_uuid,
     channel
-  ) when not is_pid(entity_uuid) and is_atom(channel) do
+  ) when not is_pid(entity_uuid) do
     register(Entity.locate_pid!(entity_uuid), channel)
   end
 
-  def register(entity, channel) when is_atom(channel) do
+  def register(entity, channel) do
     :pg2.create(channel)
     :pg2.join(channel, entity)
     Entity.put_behaviour(entity, Fluxspace.Radio.Behaviour, {channel})
@@ -27,6 +27,10 @@ defmodule Fluxspace.Radio do
     :pg2.create(channel)
     :pg2.join(channel, pid)
     notify_observe(channel, pid)
+  end
+
+  def unregister_observer(pid, channel) when is_pid(pid) do
+    :pg2.leave(channel, pid)
   end
 
   def stop_channel(channel) do

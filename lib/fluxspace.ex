@@ -5,11 +5,7 @@ defmodule Fluxspace do
     import Supervisor.Spec
 
     children = [
-      supervisor(Fluxspace.Endpoint, []),
-
-      supervisor(Fluxspace.Region.Supervisor, [], name: Fluxspace.Region.Supervisor),
-      worker(Fluxspace.Inventory.Supervisor, [[], [name: Fluxspace.Inventory.Supervisor]]),
-      worker(Fluxspace.Player.Registry, [[], [name: Fluxspace.Player.Registry]])
+      supervisor(Fluxspace.Endpoint, [])
     ]
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]

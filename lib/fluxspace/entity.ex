@@ -112,6 +112,8 @@ defmodule Fluxspace.Entity do
         use GenSync
         alias Fluxspace.Entity
 
+        def create(_args), do: Entity.start_plain()
+
         def init(entity, _args), do: {:ok, entity}
 
         def has_attribute?(%Entity{attributes: attrs}, attribute_type) when is_atom(attribute_type),
@@ -146,7 +148,7 @@ defmodule Fluxspace.Entity do
         def attribute_transaction(%Entity{attributes: attrs} = entity, modifier) when is_function(modifier, 1),
         do: %Entity{entity | attributes: modifier.(attrs)}
 
-        defoverridable [init: 2]
+        defoverridable [create: 1, init: 2]
       end
     end
   end
