@@ -2,7 +2,6 @@ defmodule Fluxspace.Lib.RoomTest do
   use ExUnit.Case, async: true
 
   alias Fluxspace.{Entity, Radio}
-  alias Fluxspace.Test.Spy
   alias Fluxspace.Lib.Room
 
   defmodule Test do
@@ -50,7 +49,7 @@ defmodule Fluxspace.Lib.RoomTest do
 
     assert :ok == Room.add_entity(room_pid, entity_pid)
     assert [entity_pid] == Room.get_entities(room_pid)
-    assert :ok == Room.remove_entity(room_pid, entity_pid)
+    assert entity_pid == Room.remove_entity(room_pid, entity_pid)
     assert [] == Room.get_entities(room_pid)
   end
 
@@ -63,14 +62,13 @@ defmodule Fluxspace.Lib.RoomTest do
     assert_receive :got
   end
 
-  test "Can listen to events on entities", %{room_uuid: room_uuid, room_pid: room_pid} do
+  test "Can listen to events on entities", %{room_pid: room_pid} do
     {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
     room_pid |> Room.add_entity(entity_pid)
-    room_pid |> Spy.register(self())
     entity_pid |> Test.register(%{test_pid: self()})
     entity_pid |> Radio.notify(:to_room)
 
-    assert_receive %{sender: ^room_uuid, event: :from_entity}
+    assert_receive :from_entity
   end
 
   test "Cannot add a room to a room", %{room_pid: room_pid} do

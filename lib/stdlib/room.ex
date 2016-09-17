@@ -1,16 +1,25 @@
 alias Fluxspace.{Radio, Entity}
+alias Fluxspace.Lib.Inventory
 
 defmodule Fluxspace.Lib.Room do
+  @moduledoc """
+  Behaviour for Rooms, this also implements a factory method
+  called create/0 that creates a plain entity with a Room
+  behaviour already registered.
+  """
+
   alias Fluxspace.Lib.Room
 
-  defstruct name: "A Room", entities: []
+  defstruct name: "A Room"
 
   @doc """
   Helper method for creating an plain entity that comes with a pre-installed Room.Behaviour.
   """
   def create do
     {:ok, entity_uuid, entity_pid} = Entity.start_plain()
+
     entity_pid |> register
+    entity_pid |> Inventory.register
 
     {:ok, entity_uuid, entity_pid}
   end
@@ -34,7 +43,8 @@ defmodule Fluxspace.Lib.Room do
   """
   def add_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
     with false <- Entity.has_behaviour?(entity_pid, Room.Behaviour) do
-      Radio.notify(room_pid, {:add_entity, entity_pid})
+      Radio.register_observer(self, entity_pid)
+      Inventory.add_entity(room_pid, entity_pid)
     else
       _ -> :error
     end
@@ -44,14 +54,15 @@ defmodule Fluxspace.Lib.Room do
   Removes an entity from a room.
   """
   def remove_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
-    Radio.notify(room_pid, {:remove_entity, entity_pid})
+    Radio.unregister_observer(self, entity_pid)
+    Inventory.remove_entity(room_pid, entity_pid)
   end
 
   @doc """
   Gets all entities from a room.
   """
   def get_entities(room_pid) when is_pid(room_pid) do
-    Entity.call_behaviour(room_pid, Room.Behaviour, :get_entities)
+    Entity.call_behaviour(room_pid, Inventory.Behaviour, :get_entities)
   end
 
   @doc """
@@ -70,39 +81,6 @@ defmodule Fluxspace.Lib.Room do
 
     def init(entity, _opts) do
       {:ok, entity |> put_attribute(%Room{})}
-    end
-
-    def handle_event({:add_entity, entity_pid}, entity) do
-      Radio.register_observer(self, entity_pid)
-      {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: [entity_pid | room.entities]} end)}
-    end
-
-    def handle_event({:remove_entity, entity_pid}, entity) do
-      Radio.unregister_observer(self, entity_pid)
-      {:ok, entity |> update_attribute(Room, fn(room) -> %Room{room | entities: Enum.reject(room.entities, &(&1 == entity_pid))} end)}
-    end
-
-    def handle_event({:notify, message}, entity) do
-      entities =
-        with attribute = entity |> get_attribute(Room) do
-          attribute.entities
-        end
-
-      case entities do
-        [] -> :ok
-        [_|_] = members -> members |> Enum.map(fn pid -> send(pid, message) end)
-      end
-
-      {:ok, entity}
-    end
-
-    def handle_call(:get_entities, entity) do
-      entities =
-        with attribute = entity |> get_attribute(Room) do
-          attribute.entities
-        end
-
-      {:ok, entities, entity}
     end
   end
 end
