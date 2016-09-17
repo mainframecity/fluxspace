@@ -1,4 +1,4 @@
-alias Fluxspace.{Attribute, Radio, Entity}
+alias Fluxspace.{Radio, Entity}
 
 defmodule Fluxspace.Lib.Inventory do
   @moduledoc """
@@ -82,14 +82,6 @@ defmodule Fluxspace.Lib.Inventory do
       {:ok, new_entity}
     end
 
-    def handle_call({:remove_entity, item_pid}, entity) do
-      new_entity = update_attribute(entity, Inventory, fn inventory ->
-        %Inventory{inventory | entities: Enum.reject(inventory.entities, &(&1 == item_pid))}
-      end)
-
-      {:ok, item_pid, new_entity}
-    end
-
     def handle_event({:notify, message}, entity) do
       entities = get_entities(entity)
 
@@ -99,6 +91,14 @@ defmodule Fluxspace.Lib.Inventory do
       end
 
       {:ok, entity}
+    end
+
+    def handle_call({:remove_entity, item_pid}, entity) do
+      new_entity = update_attribute(entity, Inventory, fn inventory ->
+        %Inventory{inventory | entities: Enum.reject(inventory.entities, &(&1 == item_pid))}
+      end)
+
+      {:ok, item_pid, new_entity}
     end
 
     def handle_call(:get_inventory, entity) do
