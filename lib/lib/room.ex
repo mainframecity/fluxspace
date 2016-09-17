@@ -1,5 +1,5 @@
 alias Fluxspace.{Radio, Entity}
-alias Fluxspace.Lib.Inventory
+alias Fluxspace.Lib.Attributes.Inventory
 
 defmodule Fluxspace.Lib.Room do
   @moduledoc """

@@ -1,6 +1,6 @@
 alias Fluxspace.{Radio, Entity}
 
-defmodule Fluxspace.Lib.Inventory do
+defmodule Fluxspace.Lib.Attributes.Inventory do
   @moduledoc """
   The behaviour for Inventory, any entity that can contain
   a collection of entities and notify messages to them.
@@ -14,7 +14,7 @@ defmodule Fluxspace.Lib.Inventory do
     Option to only allow entities with the 'Quiverable' attribute, for a quiver.
   """
 
-  alias Fluxspace.Lib.Inventory
+  alias Fluxspace.Lib.Attributes.Inventory
 
   defstruct [
     entities: []
@@ -109,6 +109,5 @@ defmodule Fluxspace.Lib.Inventory do
       entities = get_entities(entity)
       {:ok, entities, entity}
     end
-
   end
 end

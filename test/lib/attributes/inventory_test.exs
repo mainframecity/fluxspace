@@ -2,7 +2,7 @@ defmodule Fluxspace.Lib.InventoryTest do
   use ExUnit.Case, async: true
 
   alias Fluxspace.Entity
-  alias Fluxspace.Lib.Inventory
+  alias Fluxspace.Lib.Attributes.Inventory
 
   test "Can create inventory" do
     {:ok, _uuid, entity_pid} = Entity.start
