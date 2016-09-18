@@ -1,12 +1,9 @@
 alias Fluxspace.Entity
 alias Fluxspace.Lib.Attributes.Appearance
+alias Fluxspace.Lib.Daemon
 
-defmodule Fluxspace.Server do
-  use GenServer
-
-  def start_link(_state, args \\ []) do
-    GenServer.start_link(__MODULE__, args)
-  end
+defmodule Fluxspace.Lib.Daemons.CLI do
+  use Daemon
 
   def init(_args) do
     IO.puts "[fluxspace] booting.."

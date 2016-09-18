@@ -20,7 +20,7 @@ config :logger, :console,
 
 config :fluxspace, Fluxspace,
   daemons: [
-    Fluxspace.Server,
+    Fluxspace.Lib.Daemons.CLI,
     Fluxspace.Lib.Daemons.Region
   ]
 
