@@ -33,7 +33,8 @@ defmodule Fluxspace.Mixfile do
       {:phoenix_pubsub, "~> 1.0"},
       {:cowboy, "~> 1.0"},
       {:uuid, "~> 1.1"},
-      {:gproc, "~> 0.6.1"}
+      {:gproc, "~> 0.6.1"},
+      {:poison, "~> 2.0"}
     ]
   end
 end

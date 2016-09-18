@@ -1,0 +1,9 @@
+{
+  "attributes": {
+    "Appearance": {
+        "name": "Test Item",
+        "short_description": "This is a test item.",
+        "long_description": "This is a test item built for testing purposes only!"
+    }
+  }
+}

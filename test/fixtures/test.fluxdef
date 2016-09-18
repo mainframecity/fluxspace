@@ -1,0 +1,9 @@
+{
+  "attributes": {
+    "Appearance": {
+        "name": "Test Name",
+        "short_description": "Short Description",
+        "long_description": "Long Description"
+    }
+  }
+}
