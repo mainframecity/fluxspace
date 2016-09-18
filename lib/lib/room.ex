@@ -10,7 +10,10 @@ defmodule Fluxspace.Lib.Room do
 
   alias Fluxspace.Lib.Room
 
-  defstruct []
+  defstruct [
+    map: "",
+    exits: %{}
+  ]
 
   @doc """
   Helper method for creating an plain entity that comes with a pre-installed Room.Behaviour.

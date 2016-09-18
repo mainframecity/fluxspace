@@ -1,5 +1,5 @@
 alias Fluxspace.Entity
-alias Fluxspace.Lib.Attributes.{Appearance, Inventory}
+alias Fluxspace.Lib.Attributes.{Appearance, Locality, Inventory}
 
 defmodule Fluxspace.Lib.NPC do
   @moduledoc """
@@ -19,7 +19,8 @@ defmodule Fluxspace.Lib.NPC do
     {:ok, entity_uuid, entity_pid} = Entity.start_plain()
 
     entity_pid |> register(attributes)
-    entity_pid |> Inventory.register
+    entity_pid |> Locality.register()
+    entity_pid |> Inventory.register()
     entity_pid |> Appearance.register(
       %{
         name: "Unnamed NPC",
