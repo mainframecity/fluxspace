@@ -63,4 +63,12 @@ defmodule Fluxspace.EntityTest do
     entity_pid |> Life.unregister
     assert {:error, :not_found} == Entity.call_behaviour(entity_pid, Life.Behaviour, {:damage, 100})
   end
+
+  test "Can kill an entity" do
+    {:ok, uuid, _} = Entity.start_plain
+
+    assert true == Entity.exists?(uuid)
+    assert :ok == Entity.kill(uuid)
+    assert false == Entity.exists?(uuid)
+  end
 end

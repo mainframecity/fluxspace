@@ -73,8 +73,7 @@ defmodule Fluxspace.Entity do
   Kills an Entity.
   """
   def kill(entity_pid) when is_pid(entity_pid) do
-    entity_pid |> Radio.notify(:kill)
-    :ok
+    entity_pid |> GenServer.stop()
   end
 
   def kill(entity_uuid) do
@@ -200,8 +199,12 @@ defmodule Fluxspace.Entity do
         def attribute_transaction(%Entity{attributes: attrs} = entity, modifier) when is_function(modifier, 1),
         do: %Entity{entity | attributes: modifier.(attrs)}
 
+        def handle_call(:kill, entity) do
+          {:stop_process, :normal, :ok, entity}
+        end
+
         def handle_event(:kill, entity) do
-          terminate(:normal, entity)
+          {:stop_process, :normal, entity}
         end
 
         defoverridable [init: 2]

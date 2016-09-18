@@ -57,6 +57,18 @@ defmodule Fluxspace.Radio do
   end
 
   @doc """
+  Calls a native event on entity.
+  """
+  def call(entity, message) when is_pid(entity) do
+    GenServer.call(entity, message)
+  end
+
+  def call(nil, _message), do: {:error, :entity_nil}
+  def call(entity_uuid, message) do
+    call(Entity.locate_pid!(entity_uuid), message)
+  end
+
+  @doc """
   Broadcasts a message to all observers.
   """
   def notify_all(entity_pid, message) when is_pid(entity_pid) do
@@ -94,6 +106,15 @@ defmodule Fluxspace.Radio do
         {:error, {:no_such_group, _}} -> :ok
         [] -> :ok
         [_|_] = members -> members |> Enum.map(fn pid -> send(pid, message) end)
+      end
+
+      {:ok, entity}
+    end
+
+    def handle_info({:stop, :normal}, entity) do
+      case :pg2.get_members(entity.uuid) do
+        {:error, {:no_such_group, _}} -> :ok
+        _ -> :pg2.delete(entity.uuid)
       end
 
       {:ok, entity}

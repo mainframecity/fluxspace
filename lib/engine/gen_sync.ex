@@ -143,11 +143,14 @@ defmodule Fluxspace.GenSync do
 
   def handle_info(event, state) do
     Enum.reduce(state.handlers, {:ok, state.handlers, state.state},
-     fn (handler, {:ok, h, s}) ->
-       handler
-       |> handler_event(event, s)
-       |> result_notify(handler, h)
-     end)
+      fn
+        (_handler, {:stop, _r, _h, _s} = stop) ->
+          stop
+        (handler, {:ok, h, s}) ->
+          handler
+          |> handler_event(event, s)
+          |> result_notify(handler, h)
+      end)
     |> case do
       {:ok, new_handlers, new_state} ->
         state_changed(state.state, new_state, state)
