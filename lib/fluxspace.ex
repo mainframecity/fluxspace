@@ -4,9 +4,11 @@ defmodule Fluxspace do
   def start(_type, _args) do
     # import Supervisor.Spec
 
-    children = []
+    Fluxspace.File.start
 
+    children = []
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]
+
     Supervisor.start_link(children, opts)
   end
 end
