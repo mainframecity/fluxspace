@@ -16,5 +16,4 @@ defmodule Fluxspace.Lib.NPCTest do
     assert @short_description == Appearance.get_short_description(entity_pid)
     assert @long_description == Appearance.get_long_description(entity_pid)
   end
-
 end
