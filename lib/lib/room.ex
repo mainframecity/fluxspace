@@ -20,7 +20,13 @@ defmodule Fluxspace.Lib.Room do
 
     entity_pid |> register
     entity_pid |> Inventory.register
-    entity_pid |> Appearance.register(%{name: "An unnamed room", short_description: "A room of nothingness.", long_description: "A room of nothingness."})
+    entity_pid |> Appearance.register(
+      %{
+        name: "An unnamed room",
+        short_description: "A room of nothingness.",
+        long_description: "A room of nothingness."
+      }
+    )
 
     {:ok, entity_uuid, entity_pid}
   end
@@ -28,8 +34,8 @@ defmodule Fluxspace.Lib.Room do
   @doc """
   Registers a Room.Behaviour to an Entity.
   """
-  def register(entity_pid) do
-    Entity.put_behaviour(entity_pid, Room.Behaviour, [])
+  def register(entity_pid, attributes \\ %{}) do
+    Entity.put_behaviour(entity_pid, Room.Behaviour, attributes)
   end
 
   @doc """
@@ -80,8 +86,8 @@ defmodule Fluxspace.Lib.Room do
   defmodule Behaviour do
     use Entity.Behaviour
 
-    def init(entity, _opts) do
-      {:ok, entity |> put_attribute(%Room{})}
+    def init(entity, attributes) do
+      {:ok, entity |> put_attribute(Map.merge(%Room{}, attributes))}
     end
   end
 end
