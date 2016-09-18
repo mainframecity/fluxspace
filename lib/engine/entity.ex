@@ -59,6 +59,17 @@ defmodule Fluxspace.Entity do
   end
 
   @doc """
+  Checks whether or not this entity UUID exists or not.
+  """
+  def exists?(entity_uuid) do
+    with {:ok, _} <- locate_pid(entity_uuid) do
+      true
+    else
+      _ -> false
+    end
+  end
+
+  @doc """
   Kills an Entity.
   """
   def kill(entity_pid) when is_pid(entity_pid) do

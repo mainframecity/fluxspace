@@ -23,8 +23,8 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
   @doc """
   Registers the Inventory.Behaviour on an Entity.
   """
-  def register(entity_pid) do
-    entity_pid |> Entity.put_behaviour(Inventory.Behaviour, [])
+  def register(entity_pid, attributes \\ %{}) do
+    entity_pid |> Entity.put_behaviour(Inventory.Behaviour, attributes)
   end
 
   @doc """
@@ -65,8 +65,8 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
   defmodule Behaviour do
     use Entity.Behaviour
 
-    def init(entity, _opts) do
-      {:ok, entity |> put_attribute(%Inventory{})}
+    def init(entity, attributes) do
+      {:ok, entity |> put_attribute(Map.merge(attributes, %Inventory{}))}
     end
 
     def get_entities(entity) do

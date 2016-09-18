@@ -1,5 +1,5 @@
 alias Fluxspace.{Radio, Entity}
-alias Fluxspace.Lib.Attributes.Inventory
+alias Fluxspace.Lib.Attributes.{Appearance, Inventory}
 
 defmodule Fluxspace.Lib.Room do
   @moduledoc """
@@ -10,7 +10,7 @@ defmodule Fluxspace.Lib.Room do
 
   alias Fluxspace.Lib.Room
 
-  defstruct name: "A Room"
+  defstruct []
 
   @doc """
   Helper method for creating an plain entity that comes with a pre-installed Room.Behaviour.
@@ -20,6 +20,7 @@ defmodule Fluxspace.Lib.Room do
 
     entity_pid |> register
     entity_pid |> Inventory.register
+    entity_pid |> Appearance.register(%{name: "An unnamed room", short_description: "A room of nothingness.", long_description: "A room of nothingness."})
 
     {:ok, entity_uuid, entity_pid}
   end
