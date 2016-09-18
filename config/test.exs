@@ -8,3 +8,6 @@ config :fluxspace, Fluxspace.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+config :fluxspace, Fluxspace.Server,
+  disabled: true

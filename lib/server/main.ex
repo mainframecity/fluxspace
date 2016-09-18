@@ -46,7 +46,7 @@ defmodule Fluxspace.Server do
     accept(state)
   end
 
-  def handle_cast({:handle_command, command}, state) do
+  def handle_cast({:handle_command, _command}, state) do
     IO.puts("Unrecognized command")
 
     accept(state)

@@ -6,10 +6,17 @@ defmodule Fluxspace do
 
     Fluxspace.File.start
 
-    children = [
-      supervisor(Fluxspace.Endpoint, []),
-      worker(Fluxspace.Server, [])
+    base_children = [
+      supervisor(Fluxspace.Endpoint, [])
     ]
+
+    config = Application.get_env(:fluxspace, Fluxspace.Server) || []
+
+    children = if Keyword.get(config, :disabled, false) do
+      base_children
+    else
+      [worker(Fluxspace.Server, []) | base_children]
+    end
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]
 
