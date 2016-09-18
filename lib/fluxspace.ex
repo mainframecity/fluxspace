@@ -10,13 +10,13 @@ defmodule Fluxspace do
       supervisor(Fluxspace.Endpoint, [])
     ]
 
-    config = Application.get_env(:fluxspace, Fluxspace.Server) || []
+    config = Application.get_env(:fluxspace, Fluxspace) || []
 
-    children = if Keyword.get(config, :disabled, false) do
-      base_children
-    else
-      [worker(Fluxspace.Server, []) | base_children]
-    end
+    children = Keyword.get(config, :daemons, []) |> Enum.reduce(base_children, fn(daemon, acc) ->
+      [
+        worker(daemon, [[], [name: daemon]]) | acc
+      ]
+    end)
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]
 

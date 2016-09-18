@@ -4,7 +4,7 @@ alias Fluxspace.Lib.Attributes.Appearance
 defmodule Fluxspace.Server do
   use GenServer
 
-  def start_link(args \\ []) do
+  def start_link(_state, args \\ []) do
     GenServer.start_link(__MODULE__, args)
   end
 
