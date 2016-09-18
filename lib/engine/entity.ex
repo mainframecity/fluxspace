@@ -58,6 +58,22 @@ defmodule Fluxspace.Entity do
     end
   end
 
+  @doc """
+  Kills an Entity.
+  """
+  def kill(entity_pid) when is_pid(entity_pid) do
+    entity_pid |> Radio.notify(:kill)
+    :ok
+  end
+
+  def kill(entity_uuid) do
+    with {:ok, pid} <- locate_pid(entity_uuid) do
+      kill(pid)
+    else
+      _ -> :error
+    end
+  end
+
   # ---
   # Behaviour API
   # ---
@@ -172,6 +188,10 @@ defmodule Fluxspace.Entity do
 
         def attribute_transaction(%Entity{attributes: attrs} = entity, modifier) when is_function(modifier, 1),
         do: %Entity{entity | attributes: modifier.(attrs)}
+
+        def handle_event(:kill, entity) do
+          terminate(:normal, entity)
+        end
 
         defoverridable [init: 2]
       end

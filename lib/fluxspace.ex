@@ -7,7 +7,8 @@ defmodule Fluxspace do
     Fluxspace.File.start
 
     children = [
-      supervisor(Fluxspace.Endpoint, [])
+      supervisor(Fluxspace.Endpoint, []),
+      worker(Fluxspace.Server, [])
     ]
 
     opts = [strategy: :one_for_one, name: Fluxspace.Supervisor]
