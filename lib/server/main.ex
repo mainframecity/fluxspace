@@ -40,7 +40,14 @@ defmodule Fluxspace.Server do
 
   def handle_cast({:handle_command, "spawn room"}, state) do
     {:ok, uuid, _} = Fluxspace.Lib.Room.create
-    IO.puts "Spawned room: #{uuid}"
+    IO.puts "Spawned Room: #{uuid}"
+
+    accept(state)
+  end
+
+  def handle_cast({:handle_command, "spawn npc"}, state) do
+    {:ok, uuid, _} = Fluxspace.Lib.NPC.create
+    IO.puts "Spawned NPC: #{uuid}"
 
     accept(state)
   end
