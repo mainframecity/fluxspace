@@ -6,6 +6,7 @@ defmodule Fluxspace.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
+     compilers: [:phoenix] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]
@@ -16,7 +17,7 @@ defmodule Fluxspace.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Fluxspace, []},
-     applications: [:logger, :gen_stage, :gproc]]
+     applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger, :gproc]]
   end
 
   # Specifies which paths to compile per environment.
@@ -28,8 +29,10 @@ defmodule Fluxspace.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix, "~> 1.2.1"},
+      {:phoenix_pubsub, "~> 1.0"},
+      {:cowboy, "~> 1.0"},
       {:uuid, "~> 1.1"},
-      {:gen_stage, "~> 0.4"},
       {:gproc, "~> 0.6.1"}
     ]
   end
