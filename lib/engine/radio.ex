@@ -8,8 +8,6 @@ defmodule Fluxspace.Radio do
   https://github.com/entice/entity/blob/master/lib/entice/coordination.ex
   """
 
-  defstruct []
-
   alias Fluxspace.Entity
   alias Fluxspace.Radio
 
@@ -81,12 +79,11 @@ defmodule Fluxspace.Radio do
 
   defmodule Behaviour do
     use Fluxspace.Entity.Behaviour
-    alias Fluxspace.Radio
 
     def init(entity, _opts) do
       :pg2.create(entity.uuid)
 
-      {:ok, entity |> put_attribute(%Radio{})}
+      {:ok, entity}
     end
 
     def handle_event({:add_observer, entity_pid}, entity) do

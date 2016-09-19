@@ -1,8 +1,8 @@
-defmodule Fluxspace.Loaders.GenericTest do
+defmodule Fluxspace.LoaderTest do
   use ExUnit.Case
 
   alias Fluxspace.{Entity, EntityDefinition}
-  alias Fluxspace.Loaders.Generic
+  alias Fluxspace.Loader
 
   alias Fluxspace.Lib.Attributes.Appearance
 
@@ -20,18 +20,18 @@ defmodule Fluxspace.Loaders.GenericTest do
     assert %EntityDefinition{
       filepath: "test.fluxdef",
       attributes: @json_definition["attributes"]
-    } == Generic.load_definition("test.fluxdef", @json_definition)
+    } == Loader.load_definition("test.fluxdef", @json_definition)
   end
 
   test "Can load JSON definition from file" do
     assert %EntityDefinition{
       filepath: "./test/fixtures/test.fluxdef",
       attributes: @json_definition["attributes"]
-    } == Generic.load_definition("./test/fixtures/test.fluxdef")
+    } == Loader.load_definition("./test/fixtures/test.fluxdef")
   end
 
   test "Can create entity from JSON definition" do
-    definition = Generic.load_definition("test.fluxdef", @json_definition)
+    definition = Loader.load_definition("test.fluxdef", @json_definition)
     {:ok, _, entity_pid} = definition |> EntityDefinition.to_entity()
 
     assert true == entity_pid |> Entity.has_behaviour?(Appearance.Behaviour)

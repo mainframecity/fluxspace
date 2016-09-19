@@ -1,4 +1,4 @@
-defmodule Fluxspace.Loaders.Generic do
+defmodule Fluxspace.Loader do
   @moduledoc """
   Default loader for loading .fluxdef and .fluxdata files.
   """

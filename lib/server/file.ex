@@ -1,7 +1,10 @@
 defmodule Fluxspace.File do
   @moduledoc """
-  Methods for writing/reading to and from Fluxspace data files.
+  Methods for writing to .fluxdata files.
   """
+
+  alias Fluxspace.Entity
+  alias Fluxspace.EntityInstance
 
   @file_extension ".flux"
   @data_directory "data/"
@@ -14,18 +17,14 @@ defmodule Fluxspace.File do
   end
 
   @doc """
-  Writes an Elixir data structure to a file.
+  Serializes an entity.
   """
-  def write(filename, data \\ []) do
-    filepath = @data_directory <> filename <> @file_extension
-    :file.write_file(filepath, :io_lib.fwrite("~p.\n", [data]))
-  end
+  def serialize(entity_pid) do
+    entity = Entity.get_state(entity_pid)
 
-  @doc """
-  Reads Elixir data structures from a file.
-  """
-  def read(filename) do
-    filepath = @data_directory <> filename <> @file_extension
-    :file.consult(filepath)
+    %EntityInstance{
+      uuid: entity.state.uuid,
+      attributes: entity.state.attributes
+    } |> Poison.encode!
   end
 end

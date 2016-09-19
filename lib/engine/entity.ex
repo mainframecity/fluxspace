@@ -84,6 +84,21 @@ defmodule Fluxspace.Entity do
     end
   end
 
+  @doc """
+  Gets the entire entity state.
+  """
+  def get_state(entity_pid) when is_pid(entity_pid) do
+    entity_pid |> :sys.get_state()
+  end
+
+  def get_state(entity_uuid) do
+    with {:ok, pid} <- locate_pid(entity_uuid) do
+      get_state(pid)
+    else
+      _ -> :error
+    end
+  end
+
   # ---
   # Behaviour API
   # ---
