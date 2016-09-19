@@ -8,7 +8,8 @@ defmodule Fluxspace.Lib.Attributes.Locality do
   alias Fluxspace.Lib.Attributes.Locality
 
   defstruct [
-    location: ""
+    x: 0,
+    y: 0
   ]
 
   @doc """
@@ -65,6 +66,26 @@ defmodule Fluxspace.Lib.Attributes.Locality do
     end
   end
 
+
+  @doc """
+  Given an X or Y, modifies that value.
+  """
+  def modify_location(entity_pid, :x, :inc) do
+    Radio.notify(entity_pid, {:modify_location, :x, :inc})
+  end
+
+  def modify_location(entity_pid, :x, :dec) do
+    Radio.notify(entity_pid, {:modify_location, :x, :dec})
+  end
+
+  def modify_location(entity_pid, :y, :inc) do
+    Radio.notify(entity_pid, {:modify_location, :y, :inc})
+  end
+
+  def modify_location(entity_pid, :y, :dec) do
+    Radio.notify(entity_pid, {:modify_location, :y, :dec})
+  end
+
   defmodule Behaviour do
     use Entity.Behaviour
 
@@ -77,12 +98,25 @@ defmodule Fluxspace.Lib.Attributes.Locality do
     def handle_call(:get_location, entity) do
       locality = get_locality(entity)
 
-      {:ok, locality.location, entity}
+      {:ok, {locality.x, locality.y}, entity}
     end
 
-    def handle_event({:set_location, location}, entity) do
+    def handle_event({:set_location, {x, y}}, entity) do
       new_entity = update_attribute(entity, Locality, fn locality ->
-        %Locality{locality | location: location}
+        %Locality{locality | x: x, y: y}
+      end)
+
+      {:ok, new_entity}
+    end
+
+    def handle_event({:modify_location, component, action}, entity) do
+      new_entity = update_attribute(entity, Locality, fn locality ->
+        case {component, action} do
+          {:x, :inc} -> %Locality{locality | x: locality.x + 1}
+          {:x, :dec} -> %Locality{locality | x: locality.x - 1}
+          {:y, :inc} -> %Locality{locality | y: locality.y + 1}
+          {:y, :dec} -> %Locality{locality | y: locality.y - 1}
+        end
       end)
 
       {:ok, new_entity}

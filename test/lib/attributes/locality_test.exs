@@ -4,7 +4,7 @@ defmodule Fluxspace.Lib.LocalityTest do
   alias Fluxspace.Entity
   alias Fluxspace.Lib.Attributes.Locality
 
-  @location "test_map.room.test"
+  @location {1, 2}
 
   test "Can create entity with Locality" do
     {:ok, _uuid, entity_pid} = Entity.start

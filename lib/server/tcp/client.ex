@@ -1,14 +1,16 @@
 defmodule Fluxspace.TCP.Client do
   use GenServer
 
+  alias Fluxspace.Lib.Player
   alias Fluxspace.TCP.Client
+  alias Fluxspace.Lib.Attributes.Locality
 
   defstruct [
+    player_uuid: "",
+    player_pid: nil,
     socket: nil,
     halted: false,
-    initialized: false,
-    x: 1,
-    y: 1
+    initialized: false
   ]
 
   @map [
@@ -25,12 +27,21 @@ defmodule Fluxspace.TCP.Client do
   ]
 
   def start_link(socket) do
-    {:ok, spawn(fn() -> serve(%Client{socket: socket}) end)}
+    client_pid = spawn(fn() ->
+      {:ok, player_uuid, player_pid} = Player.create
+
+      serve(%Client{socket: socket, player_uuid: player_uuid, player_pid: player_pid})
+    end)
+
+    {:ok, client_pid}
   end
 
   def serve(%Client{initialized: false} = client) do
     :gen_tcp.send(client.socket, <<255, 251, 1>>)
     :gen_tcp.send(client.socket, <<255, 251, 3>>)
+
+    :pg2.create("TCP")
+    :pg2.join("TCP", client.player_pid)
 
     serve(%Client{client | initialized: true})
   end
@@ -48,14 +59,27 @@ defmodule Fluxspace.TCP.Client do
     end
   end
 
+
+  def get_player_pids() do
+    :pg2.get_members("TCP")
+  end
+
   # ---
   # Translation
   # ---
 
   def serialize_map(client) do
+    {player_x, player_y} = Locality.get_location(client.player_pid)
+
+    player_coordinates =
+      get_player_pids()
+      |> Enum.map(fn(player_pid) ->
+        Locality.get_location(player_pid)
+      end)
+
     fov_map =
       @map
-      |> Fluxspace.FOV.calculate_fov({client.x, client.y}, 4)
+      |> Fluxspace.FOV.calculate_fov({player_x, player_y}, 4)
 
     @map
     |> Enum.zip(fov_map)
@@ -71,7 +95,7 @@ defmodule Fluxspace.TCP.Client do
        [row
        |> Stream.with_index()
        |> Enum.map(fn({col, col_idx}) ->
-         if row_idx == client.y and col_idx == client.x do
+         if Enum.any?(player_coordinates, &(&1 == {col_idx, row_idx})) do
            "@"
          else
            tile_to_ascii(col)
@@ -92,9 +116,11 @@ defmodule Fluxspace.TCP.Client do
   # ---
 
   def read_socket(socket) do
-    case :gen_tcp.recv(socket, 0) do
+    case :gen_tcp.recv(socket, 0, 100) do
       {:ok, data} ->
         {:ok, data}
+      {:error, :timeout} ->
+        {:ok, ""}
       _ -> :error
     end
   end
@@ -107,42 +133,54 @@ defmodule Fluxspace.TCP.Client do
 
   # N
   def handle_message("k", client) do
-    {:ok, %Client{client | y: client.y - 1}}
+    client.player_pid |> Locality.modify_location(:y, :dec)
+    {:ok, client}
   end
 
   # NE
   def handle_message("u", client) do
-    {:ok, %Client{client | y: client.y - 1, x: client.x + 1}}
+    client.player_pid |> Locality.modify_location(:y, :dec)
+    client.player_pid |> Locality.modify_location(:x, :inc)
+    {:ok, client}
   end
 
   # E
   def handle_message("l", client) do
-    {:ok, %Client{client | x: client.x + 1}}
+    client.player_pid |> Locality.modify_location(:x, :inc)
+    {:ok, client}
   end
 
   # SE
   def handle_message("n", client) do
-    {:ok, %Client{client | y: client.y + 1, x: client.x + 1}}
+    client.player_pid |> Locality.modify_location(:y, :inc)
+    client.player_pid |> Locality.modify_location(:x, :inc)
+    {:ok, client}
   end
 
   # S
   def handle_message("j", client) do
-    {:ok, %Client{client | y: client.y + 1}}
+    client.player_pid |> Locality.modify_location(:y, :inc)
+    {:ok, client}
   end
 
   # SW
   def handle_message("b", client) do
-    {:ok, %Client{client | y: client.y + 1, x: client.x - 1}}
+    client.player_pid |> Locality.modify_location(:y, :inc)
+    client.player_pid |> Locality.modify_location(:x, :dec)
+    {:ok, client}
   end
 
   # W
   def handle_message("h", client) do
-    {:ok, %Client{client | x: client.x - 1}}
+    client.player_pid |> Locality.modify_location(:x, :dec)
+    {:ok, client}
   end
 
   # NW
   def handle_message("y", client) do
-    {:ok, %Client{client | y: client.y - 1, x: client.x - 1}}
+    client.player_pid |> Locality.modify_location(:y, :dec)
+    client.player_pid |> Locality.modify_location(:x, :dec)
+    {:ok, client}
   end
 
   def handle_message(_message, client), do: {:ok, client}
