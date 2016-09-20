@@ -98,7 +98,7 @@ defmodule Fluxspace.Lib.Daemons.CLI do
     :error
   end
 
-  def handle_command(_command), do: "Unexpected command." |> IO.write
+  def handle_command(command), do: "Unexpected command: \e[3m#{command}\e[0m" |> IO.write
 
   # ---
   # Char Handlers
@@ -108,7 +108,9 @@ defmodule Fluxspace.Lib.Daemons.CLI do
   def handle_char("\d", state) do
     "\e[1D\e[K" |> IO.write
 
-    state
+    << _last::utf8, buffer::binary >> = state.buffer |> String.reverse
+
+    %CLI{state | buffer: buffer |> String.reverse}
   end
 
   def handle_char("\e[A", state), do: state
