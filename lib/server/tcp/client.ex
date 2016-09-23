@@ -71,7 +71,7 @@ defmodule Fluxspace.TCP.Client do
   def tile_to_ascii(tile) do
     case tile do
       1 -> "#"
-      0 -> "."
+      0 -> "\e[30m.\e[37m"
     end
   end
 
