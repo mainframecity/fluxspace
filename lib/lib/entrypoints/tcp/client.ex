@@ -1,8 +1,8 @@
-defmodule Fluxspace.TCP.Client do
+defmodule Fluxspace.Entrypoints.TCP.Client do
   use GenServer
 
   alias Fluxspace.Lib.Player
-  alias Fluxspace.TCP.Client
+  alias Fluxspace.Entrypoints.TCP.Client
 
   @help """
   ------------------------------
@@ -34,7 +34,7 @@ defmodule Fluxspace.TCP.Client do
         player_pid: player_pid
       }
 
-      Fluxspace.TCP.SocketGroup.add_socket(client.socket_group, client.socket)
+      Fluxspace.Entrypoints.TCP.SocketGroup.add_socket(client.socket_group, client.socket)
 
       serve(client)
     end)
@@ -49,7 +49,7 @@ defmodule Fluxspace.TCP.Client do
   end
 
   def serve(%Client{halted: true} = client) do
-    Fluxspace.TCP.SocketGroup.remove_socket(client.socket_group, client.socket)
+    Fluxspace.Entrypoints.TCP.SocketGroup.remove_socket(client.socket_group, client.socket)
   end
 
   def serve(client) do
@@ -69,7 +69,7 @@ defmodule Fluxspace.TCP.Client do
   end
 
   def broadcast_message(client, message) do
-    Fluxspace.TCP.SocketGroup.broadcast_message(client.socket_group, message)
+    Fluxspace.Entrypoints.TCP.SocketGroup.broadcast_message(client.socket_group, message)
     {:ok, client}
   end
 
