@@ -3,66 +3,57 @@ defmodule Fluxspace.TCP.Client do
 
   alias Fluxspace.Lib.Player
   alias Fluxspace.TCP.Client
-  alias Fluxspace.Lib.Attributes.Locality
+
+  @help """
+  ------------------------------
+  Welcome to Fluxspace.
+
+  help - Display this message.
+  say <message> - Say a message.
+  ------------------------------
+
+  """
 
   defstruct [
     player_uuid: "",
     player_pid: nil,
     socket: nil,
+    socket_group: nil,
     halted: false,
     initialized: false
   ]
 
-  @map [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ]
-
-  def start_link(socket) do
+  def start_link(socket_group, socket) do
     client_pid = spawn(fn() ->
       {:ok, player_uuid, player_pid} = Player.create
 
-      serve(%Client{socket: socket, player_uuid: player_uuid, player_pid: player_pid})
+      client = %Client{
+        socket: socket,
+        socket_group: socket_group,
+        player_uuid: player_uuid,
+        player_pid: player_pid
+      }
+
+      Fluxspace.TCP.SocketGroup.add_socket(client.socket_group, client.socket)
+
+      serve(client)
     end)
 
     {:ok, client_pid}
   end
 
   def serve(%Client{initialized: false} = client) do
-    :gen_tcp.send(client.socket, <<255, 251, 1>>)
-    :gen_tcp.send(client.socket, <<255, 251, 3>>)
-
-    :pg2.create("TCP")
-    :pg2.join("TCP", client.player_pid)
+    do_command("help", client)
 
     serve(%Client{client | initialized: true})
   end
 
-  def serve(%Client{halted: true}), do: nil
+  def serve(%Client{halted: true} = client) do
+    Fluxspace.TCP.SocketGroup.remove_socket(client.socket_group, client.socket)
+  end
+
   def serve(client) do
-    :gen_tcp.send(client.socket, "\e[2J")
-    :gen_tcp.send(client.socket, serialize_map(client))
+    :gen_tcp.send(client.socket, "> ")
 
     with {:ok, data} <- read_socket(client.socket),
       {:ok, new_client} <- handle_message(data, client) do
@@ -72,64 +63,44 @@ defmodule Fluxspace.TCP.Client do
     end
   end
 
+  def send_message(client, message) do
+    :gen_tcp.send(client.socket, [message, "\n"])
+    {:ok, client}
+  end
 
-  def get_player_pids() do
-    :pg2.get_members("TCP")
+  def broadcast_message(client, message) do
+    Fluxspace.TCP.SocketGroup.broadcast_message(client.socket_group, message)
+    {:ok, client}
   end
 
   # ---
-  # Translation
+  # Commands
   # ---
 
-  def serialize_map(client) do
-    {player_x, player_y} = Locality.get_location(client.player_pid)
-
-    player_coordinates =
-      get_player_pids()
-      |> Enum.map(fn(player_pid) ->
-        Locality.get_location(player_pid)
-      end)
-
-    fov_map =
-      @map
-      |> Fluxspace.FOV.calculate_fov({player_x, player_y}, 4)
-
-    @map
-    |> Enum.zip(fov_map)
-    |> Enum.map(fn({u, v}) ->
-      u
-      |> Enum.zip(v)
-      |> Enum.map(fn({x, y}) ->
-        x*y
-      end)
-    end)
-    |> Enum.with_index()
-    |> Enum.map(fn({row, row_idx}) ->
-       [row
-       |> Stream.with_index()
-       |> Enum.map(fn({col, col_idx}) ->
-         if Enum.any?(player_coordinates, &(&1 == {col_idx, row_idx})) do
-           "@"
-         else
-           tile_to_ascii(col)
-         end
-       end)| ["\r\n"]]
-     end)
+  def do_command("help", client) do
+    send_message(client, @help)
   end
 
-  def tile_to_ascii(tile) do
-    case tile do
-      1 -> "#"
-      0 -> "\e[30m.\e[37m"
-    end
+  def do_command("say " <> message, client) do
+    formatted_message = [
+      "\n",
+      client.player_uuid,
+      " says: ",
+      message,
+      "\n"
+    ]
+
+    broadcast_message(client, formatted_message)
   end
+
+  def do_command(_message, client), do: {:error, client}
 
   # ---
   # IO
   # ---
 
   def read_socket(socket) do
-    case :gen_tcp.recv(socket, 0, 100) do
+    case :gen_tcp.recv(socket, 0) do
       {:ok, data} ->
         {:ok, data}
       {:error, :timeout} ->
@@ -142,59 +113,19 @@ defmodule Fluxspace.TCP.Client do
   def handle_message(<<255, 252, 1, 255, 251, 3>>, client), do: {:ok, client}
   def handle_message(<<255, 254, 1>>, client), do: {:ok, client}
 
-  # ORIGIN IS TOP-LEFT OF SCREEN
+  def handle_message(message, client) do
+    normalized_message = normalize_message(message)
 
-  # N
-  def handle_message("k", client) do
-    client.player_pid |> Locality.modify_location(:y, :dec)
-    {:ok, client}
+    case do_command(normalized_message, client) do
+      {:ok, client} ->
+        {:ok, client}
+      _ ->
+        send_message(client, "I'm sorry, what?")
+        {:ok, client}
+    end
   end
 
-  # NE
-  def handle_message("u", client) do
-    client.player_pid |> Locality.modify_location(:y, :dec)
-    client.player_pid |> Locality.modify_location(:x, :inc)
-    {:ok, client}
+  def normalize_message(message) do
+    String.strip(message)
   end
-
-  # E
-  def handle_message("l", client) do
-    client.player_pid |> Locality.modify_location(:x, :inc)
-    {:ok, client}
-  end
-
-  # SE
-  def handle_message("n", client) do
-    client.player_pid |> Locality.modify_location(:y, :inc)
-    client.player_pid |> Locality.modify_location(:x, :inc)
-    {:ok, client}
-  end
-
-  # S
-  def handle_message("j", client) do
-    client.player_pid |> Locality.modify_location(:y, :inc)
-    {:ok, client}
-  end
-
-  # SW
-  def handle_message("b", client) do
-    client.player_pid |> Locality.modify_location(:y, :inc)
-    client.player_pid |> Locality.modify_location(:x, :dec)
-    {:ok, client}
-  end
-
-  # W
-  def handle_message("h", client) do
-    client.player_pid |> Locality.modify_location(:x, :dec)
-    {:ok, client}
-  end
-
-  # NW
-  def handle_message("y", client) do
-    client.player_pid |> Locality.modify_location(:y, :dec)
-    client.player_pid |> Locality.modify_location(:x, :dec)
-    {:ok, client}
-  end
-
-  def handle_message(_message, client), do: {:ok, client}
 end
