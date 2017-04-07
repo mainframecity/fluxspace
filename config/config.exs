@@ -5,14 +5,6 @@
 # is restricted to this project.
 use Mix.Config
 
-# Configures the endpoint
-config :fluxspace, Fluxspace.Endpoint,
-  url: [host: "localhost"],
-  secret_key_base: "3/r7yoiOgDdXE3o7w5l/sR9/E/xJFF+R39CFYUAI/Zmrgv9WYPWAQb+Z+HnyXnS6",
-  render_errors: [view: Fluxspace.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Fluxspace.PubSub,
-           adapter: Phoenix.PubSub.PG2]
-
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
