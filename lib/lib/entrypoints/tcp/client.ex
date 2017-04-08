@@ -39,8 +39,6 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def serve(client) do
-    :gen_tcp.send(client.socket, "> ")
-
     case read_socket(client.socket) do
       {:ok, data} ->
         handle_message(data, client)

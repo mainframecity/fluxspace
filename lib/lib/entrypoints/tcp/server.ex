@@ -2,7 +2,7 @@ defmodule Fluxspace.Entrypoints.TCP.Server do
   @port 4040
 
   def start_link(_state, _args) do
-    {:ok, spawn(&init/0)}
+    {:ok, spawn_link(&init/0)}
   end
 
   def init() do
@@ -14,8 +14,11 @@ defmodule Fluxspace.Entrypoints.TCP.Server do
   end
 
   def loop_acceptor(socket) do
-    {:ok, client_socket} = :gen_tcp.accept(socket)
-    {:ok, _client} = Fluxspace.Entrypoints.TCP.Client.start_link(client_socket)
+    case :gen_tcp.accept(socket) do
+      {:ok, client_socket} ->
+        Fluxspace.Entrypoints.TCP.Client.start_link(client_socket)
+      _ -> :ok
+    end
 
     loop_acceptor(socket)
   end

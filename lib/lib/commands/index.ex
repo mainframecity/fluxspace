@@ -1,16 +1,19 @@
 defmodule Fluxspace.Commands.Index do
+  alias Fluxspace.Entrypoints.{Client, ClientGroup}
+
   @help """
   ------------------------------
   Welcome to Fluxspace.
 
   help - Display this message.
   say <message> - Say a message.
+  logout - Logs you out.
   ------------------------------
 
   """
 
   def do_command("help", client) do
-    send_message(client, @help)
+    Client.send_message(client, @help)
 
     {:ok, client}
   end
@@ -24,22 +27,21 @@ defmodule Fluxspace.Commands.Index do
       "\n"
     ]
 
-    broadcast_message(formatted_message)
+    ClientGroup.broadcast_message(formatted_message)
+
+    {:ok, client}
+  end
+
+  def do_command("logout", client) do
+    ClientGroup.broadcast_message("#{client.player_uuid} logged out.\n")
+    Client.close(client)
 
     {:ok, client}
   end
 
   def do_command(_, client) do
-    send_message(client, "I'm sorry, what?")
+    Client.send_message(client, "I'm sorry, what?")
 
     {:error, client}
-  end
-
-  def send_message(client, message) do
-    Fluxspace.Entrypoints.ClientGroup.send_message(client, message)
-  end
-
-  def broadcast_message(message) do
-    Fluxspace.Entrypoints.ClientGroup.broadcast_message(message)
   end
 end
