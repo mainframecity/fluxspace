@@ -16,6 +16,15 @@ config :fluxspace, Fluxspace,
     Fluxspace.Lib.Daemons.Region
   ]
 
+config :fluxspace, ecto_repos: [Fluxspace.Repo]
+
+config :fluxspace, Fluxspace.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "fluxspace",
+  username: "postgres",
+  password: "postgres",
+  port: "5432"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
