@@ -72,6 +72,6 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def normalize_message(message) do
-    String.strip(message)
+    String.trim(message)
   end
 end
