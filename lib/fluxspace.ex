@@ -7,8 +7,8 @@ defmodule Fluxspace do
     Fluxspace.File.start
 
     base_children = [
+      supervisor(Fluxspace.Repo, []),
       worker(Fluxspace.Entrypoints.ClientGroup, []),
-
       worker(Fluxspace.Entrypoints.TCP.Server, [[], []]),
       worker(Fluxspace.Entrypoints.Websocket.Server, [[], []])
     ]
