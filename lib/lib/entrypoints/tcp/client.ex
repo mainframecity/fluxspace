@@ -1,12 +1,10 @@
 defmodule Fluxspace.Entrypoints.TCP.Client do
-  use GenServer
-
   alias Fluxspace.Lib.Player
   alias Fluxspace.Entrypoints.Client
 
   def start_link(socket) do
-    client_pid = spawn(fn() ->
-      {:ok, player_uuid, player_pid} = Player.create
+    client_pid = spawn_link(fn() ->
+      {:ok, player_uuid, player_pid} = Player.create()
 
       client = %Client{
         socket: socket,
@@ -16,9 +14,14 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
         unique_ref: make_ref()
       }
 
-      Fluxspace.Entrypoints.ClientGroup.add_client(client)
+      {:ok, client_pid} = Client.start_link(client)
 
-      serve(client)
+      new_client = %Client{
+        client |
+        client_pid: client_pid
+      }
+
+      serve(new_client)
     end)
 
     {:ok, client_pid}
@@ -31,23 +34,21 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def serve(%Client{halted: true} = client) do
-    Fluxspace.Entrypoints.ClientGroup.remove_client(client)
+    Client.stop(client)
+    :stop
   end
 
   def serve(client) do
     :gen_tcp.send(client.socket, "> ")
 
-    with {:ok, data} <- read_socket(client.socket),
-      {:ok, new_client} <- handle_message(data, client) do
-        serve(new_client)
-    else
-      _ -> serve(%Client{client | halted: true})
+    case read_socket(client.socket) do
+      {:ok, data} ->
+        handle_message(data, client)
+        serve(client)
+      _ ->
+        serve(%Client{client | halted: true})
     end
   end
-
-  # ---
-  # Commands
-  # ---
 
   # ---
   # IO
@@ -68,11 +69,6 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   def handle_message(<<255, 254, 1>>, client), do: {:ok, client}
 
   def handle_message(message, client) do
-    normalized_message = normalize_message(message)
-    Fluxspace.Commands.Index.do_command(normalized_message, client)
-  end
-
-  def normalize_message(message) do
-    String.trim(message)
+    Client.receive_message(client, message)
   end
 end

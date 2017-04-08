@@ -8,8 +8,8 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
     {:upgrade, :protocol, :cowboy_websocket}
   end
 
-  def websocket_terminate(_reason, _req, state) do
-    Fluxspace.Entrypoints.ClientGroup.remove_client(state)
+  def websocket_terminate(_reason, _req, client) do
+    Client.stop(client)
     :ok
   end
 
@@ -24,27 +24,30 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
       unique_ref: make_ref()
     }
 
-    Fluxspace.Entrypoints.ClientGroup.add_client(client)
+    {:ok, client_pid} = Client.start_link(client)
 
-    {:ok, req, client}
+    new_client = %Client{
+      client |
+      client_pid: client_pid
+    }
+
+    {:ok, req, new_client}
   end
 
-  def websocket_handle({:text, message}, req, state) do
-    formatted_message = String.trim(message)
-    Fluxspace.Commands.Index.do_command(formatted_message, state)
-
-    {:reply, {:text, ""}, req, state}
+  def websocket_handle({:text, message}, req, client) do
+    Client.receive_message(client, message)
+    {:reply, {:text, ""}, req, client}
   end
 
-  def websocket_handle(_frame, _req, state) do
-    {:ok, state}
+  def websocket_handle(_frame, _req, client) do
+    {:ok, client}
   end
 
-  def websocket_info({:send_message, message}, req, state) do
-    {:reply, {:text, message}, req, state}
+  def websocket_info({:send_message, message}, req, client) do
+    {:reply, {:text, message}, req, client}
   end
 
-  def websocket_info(_info, _req, state) do
-    {:ok, state}
+  def websocket_info(_info, _req, client) do
+    {:ok, client}
   end
 end
