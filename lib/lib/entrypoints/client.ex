@@ -35,6 +35,11 @@ defmodule Fluxspace.Entrypoints.Client do
     GenServer.stop(client.client_pid)
   end
 
+  def close(%__MODULE__{} = client) do
+    client.entrypoint_module.close(client)
+    stop(client)
+  end
+
   def receive_message(%__MODULE__{} = client, message) do
     send(client.client_pid, {:receive_message, message})
   end
@@ -58,16 +63,26 @@ defmodule Fluxspace.Entrypoints.Client do
     normalized_message = normalize_message(message)
 
     if length(client.callbacks) > 0 do
-      send(hd(client.callbacks), {:message, normalized_message})
+      [callback | callbacks] = client.callbacks
+
+      send(callback, {:message, normalized_message})
+
+      new_client = %__MODULE__{
+        client |
+        callbacks: callbacks
+      }
+
+      {:noreply, new_client}
     else
       Fluxspace.Commands.Index.do_command(normalized_message, client)
-    end
 
-    {:noreply, client}
+      {:noreply, client}
+    end
   end
 
   def handle_info({:register_callback, pid}, client) do
     new_client = %__MODULE__{
+      client |
       callbacks: [pid | client.callbacks]
     }
 

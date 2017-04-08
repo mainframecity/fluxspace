@@ -28,7 +28,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def serve(%Client{initialized: false} = client) do
-    Fluxspace.Commands.Index.do_command("help", client)
+    Fluxspace.Menus.Login.call(client)
 
     serve(%Client{client | initialized: true})
   end

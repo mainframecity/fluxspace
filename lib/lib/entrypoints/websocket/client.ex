@@ -8,8 +8,7 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
     {:upgrade, :protocol, :cowboy_websocket}
   end
 
-  def websocket_terminate(_reason, _req, client) do
-    Client.stop(client)
+  def websocket_terminate(_reason, _req, _client) do
     :ok
   end
 
@@ -31,23 +30,30 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
       client_pid: client_pid
     }
 
+    Fluxspace.Menus.Login.call(new_client)
+
     {:ok, req, new_client}
   end
 
   def websocket_handle({:text, message}, req, client) do
     Client.receive_message(client, message)
+
     {:reply, {:text, ""}, req, client}
   end
 
-  def websocket_handle(_frame, _req, client) do
-    {:ok, client}
+  def websocket_handle(_frame, req, client) do
+    {:ok, req, client}
   end
 
   def websocket_info({:send_message, message}, req, client) do
     {:reply, {:text, message}, req, client}
   end
 
-  def websocket_info(_info, _req, client) do
-    {:ok, client}
+  def websocket_info(:close, req, client) do
+    {:shutdown, req, client}
+  end
+
+  def websocket_info(_info, req, client) do
+    {:ok, req, client}
   end
 end

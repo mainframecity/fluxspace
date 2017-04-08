@@ -14,7 +14,7 @@ defmodule Fluxspace.Menu do
 
       def handle_info(:start, client) do
         start(client)
-        {:stop, :normal}
+        {:stop, :normal, client}
       end
 
       def start(_client), do: :ok
