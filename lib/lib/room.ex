@@ -53,7 +53,7 @@ defmodule Fluxspace.Lib.Room do
   """
   def add_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
     with false <- Entity.has_behaviour?(entity_pid, Room.Behaviour) do
-      Radio.register_observer(self, entity_pid)
+      Radio.register_observer(self(), entity_pid)
       Inventory.add_entity(room_pid, entity_pid)
     else
       _ -> :error
@@ -64,7 +64,7 @@ defmodule Fluxspace.Lib.Room do
   Removes an entity from a room.
   """
   def remove_entity(room_pid, entity_pid) when is_pid(room_pid) and is_pid(entity_pid) do
-    Radio.unregister_observer(self, entity_pid)
+    Radio.unregister_observer(self(), entity_pid)
     Inventory.remove_entity(room_pid, entity_pid)
   end
 

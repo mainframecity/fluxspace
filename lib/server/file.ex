@@ -3,7 +3,7 @@ defmodule Fluxspace.File do
   Methods for writing to .fluxdata files.
   """
 
-  @file_extension ".flux"
+  # @file_extension ".flux"
   @data_directory "data/"
 
   @doc """

@@ -11,7 +11,7 @@ defmodule Fluxspace.Lib.Attributes.Equippable do
 
   alias Fluxspace.Lib.Attributes.Equippable
 
-  @slot_types [:head, :feet, :lower_body, :upper_body]
+  # @slot_types [:head, :feet, :lower_body, :upper_body]
 
   defstruct [
     slot: :upper_body

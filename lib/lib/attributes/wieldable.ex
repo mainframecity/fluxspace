@@ -11,7 +11,7 @@ defmodule Fluxspace.Lib.Attributes.Wieldable do
 
   alias Fluxspace.Lib.Attributes.Wieldable
 
-  @slot_types [:one_handed, :two_handed]
+  # @slot_types [:one_handed, :two_handed]
 
   defstruct [
     slot: :one_handed
