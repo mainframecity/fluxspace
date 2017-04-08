@@ -1,6 +1,8 @@
 # Fluxspace
 
-### MUD Library in Elixir
+[![CircleCI](https://circleci.com/gh/mainframecity/fluxspace.svg?style=shield)](https://circleci.com/gh/mainframecity/fluxspace)
+
+MUD Library in Elixir
 
 ---
 
