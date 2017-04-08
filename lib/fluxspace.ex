@@ -7,7 +7,8 @@ defmodule Fluxspace do
     Fluxspace.File.start
 
     base_children = [
-      worker(Fluxspace.Entrypoints.TCP, [[], []])
+      worker(Fluxspace.Entrypoints.ClientGroup, []),
+      worker(Fluxspace.Entrypoints.TCP.Server, [[], []]),
     ]
 
     config = Application.get_env(:fluxspace, Fluxspace) || []

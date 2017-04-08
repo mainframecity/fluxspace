@@ -2,7 +2,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   use GenServer
 
   alias Fluxspace.Lib.Player
-  alias Fluxspace.Entrypoints.TCP.Client
+  alias Fluxspace.Entrypoints.Client
 
   @help """
   ------------------------------
@@ -14,27 +14,18 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
 
   """
 
-  defstruct [
-    player_uuid: "",
-    player_pid: nil,
-    socket: nil,
-    socket_group: nil,
-    halted: false,
-    initialized: false
-  ]
-
-  def start_link(socket_group, socket) do
+  def start_link(socket) do
     client_pid = spawn(fn() ->
       {:ok, player_uuid, player_pid} = Player.create
 
       client = %Client{
         socket: socket,
-        socket_group: socket_group,
+        entrypoint_module: Fluxspace.Entrypoints.TCP,
         player_uuid: player_uuid,
         player_pid: player_pid
       }
 
-      Fluxspace.Entrypoints.TCP.SocketGroup.add_socket(client.socket_group, client.socket)
+      Fluxspace.Entrypoints.ClientGroup.add_client(client)
 
       serve(client)
     end)
@@ -49,7 +40,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def serve(%Client{halted: true} = client) do
-    Fluxspace.Entrypoints.TCP.SocketGroup.remove_socket(client.socket_group, client.socket)
+    Fluxspace.Entrypoints.ClientGroup.remove_client(client)
   end
 
   def serve(client) do
@@ -69,7 +60,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def broadcast_message(client, message) do
-    Fluxspace.Entrypoints.TCP.SocketGroup.broadcast_message(client.socket_group, message)
+    Fluxspace.Entrypoints.ClientGroup.broadcast_message(message)
     {:ok, client}
   end
 
