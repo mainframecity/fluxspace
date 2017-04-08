@@ -1,3 +1,0 @@
-#!/bin/bash
-
-elixir --erl "-noinput" -S mix phoenix.server
