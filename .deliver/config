@@ -1,0 +1,9 @@
+APP="fluxspace"
+
+BUILD_HOST="mud.andrewvy.com"
+BUILD_USER="vy"
+BUILD_AT="/tmp/edeliver/fluxspace/builds"
+
+STAGING_HOSTS="mud.andrewvy.com"
+STAGING_USER="vy"
+DELIVER_TO="/home/vy/fluxspace"

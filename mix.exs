@@ -26,7 +26,9 @@ defmodule Fluxspace.Mixfile do
       {:cowboy, "~> 1.0"},
       {:uuid, "~> 1.1"},
       {:gproc, "~> 0.6.1"},
-      {:poison, "~> 2.0"}
+      {:poison, "~> 2.0"},
+      {:edeliver, "~> 1.4.2"},
+      {:distillery, ">= 0.8.0", warn_missing: false}
     ]
   end
 end
