@@ -6,6 +6,7 @@ defmodule Fluxspace.Entrypoints.Client do
     socket: nil,
     socket_group: nil,
     halted: false,
-    initialized: false
+    initialized: false,
+    unique_ref: nil
   ]
 end

@@ -12,7 +12,8 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
         socket: socket,
         entrypoint_module: Fluxspace.Entrypoints.TCP,
         player_uuid: player_uuid,
-        player_pid: player_pid
+        player_pid: player_pid,
+        unique_ref: make_ref()
       }
 
       Fluxspace.Entrypoints.ClientGroup.add_client(client)

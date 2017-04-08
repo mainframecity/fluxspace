@@ -20,7 +20,8 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
       socket: self(),
       entrypoint_module: Fluxspace.Entrypoints.Websocket,
       player_uuid: player_uuid,
-      player_pid: player_pid
+      player_pid: player_pid,
+      unique_ref: make_ref()
     }
 
     Fluxspace.Entrypoints.ClientGroup.add_client(client)

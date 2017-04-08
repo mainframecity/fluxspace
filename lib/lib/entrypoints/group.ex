@@ -32,7 +32,7 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
   def handle_call({:remove_client, client}, _from, state) do
     new_state = state |> Enum.reject(fn(compared_client) ->
-      compared_client.player_uuid == client.player_uuid
+      compared_client.unique_ref == client.unique_ref
     end)
 
     {:reply, :ok, new_state}
@@ -40,7 +40,7 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
   def handle_call({:send_message, client, message}, _from, state) do
     client = Enum.find(state, fn(compared_client) ->
-      compared_client.player_uuid == client.player_uuid
+      compared_client.unique_ref == client.unique_ref
     end)
 
     if client && client.entrypoint_module do
