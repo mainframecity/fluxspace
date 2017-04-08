@@ -15,7 +15,7 @@ defmodule Fluxspace.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Fluxspace, []},
-     applications: [:cowboy, :logger, :gproc]]
+     applications: [:cowboy, :logger, :gproc, :uuid, :poison]]
   end
 
   # Specifies your project dependencies.
