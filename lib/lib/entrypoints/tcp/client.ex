@@ -4,16 +4,6 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   alias Fluxspace.Lib.Player
   alias Fluxspace.Entrypoints.Client
 
-  @help """
-  ------------------------------
-  Welcome to Fluxspace.
-
-  help - Display this message.
-  say <message> - Say a message.
-  ------------------------------
-
-  """
-
   def start_link(socket) do
     client_pid = spawn(fn() ->
       {:ok, player_uuid, player_pid} = Player.create
@@ -34,7 +24,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def serve(%Client{initialized: false} = client) do
-    do_command("help", client)
+    Fluxspace.Commands.Index.do_command("help", client)
 
     serve(%Client{client | initialized: true})
   end
@@ -54,37 +44,9 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
     end
   end
 
-  def send_message(client, message) do
-    :gen_tcp.send(client.socket, [message, "\n"])
-    {:ok, client}
-  end
-
-  def broadcast_message(client, message) do
-    Fluxspace.Entrypoints.ClientGroup.broadcast_message(message)
-    {:ok, client}
-  end
-
   # ---
   # Commands
   # ---
-
-  def do_command("help", client) do
-    send_message(client, @help)
-  end
-
-  def do_command("say " <> message, client) do
-    formatted_message = [
-      "\n",
-      client.player_uuid,
-      " says: ",
-      message,
-      "\n"
-    ]
-
-    broadcast_message(client, formatted_message)
-  end
-
-  def do_command(_message, client), do: {:error, client}
 
   # ---
   # IO
@@ -106,14 +68,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
 
   def handle_message(message, client) do
     normalized_message = normalize_message(message)
-
-    case do_command(normalized_message, client) do
-      {:ok, client} ->
-        {:ok, client}
-      _ ->
-        send_message(client, "I'm sorry, what?")
-        {:ok, client}
-    end
+    Fluxspace.Commands.Index.do_command(normalized_message, client)
   end
 
   def normalize_message(message) do

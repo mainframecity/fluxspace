@@ -17,6 +17,10 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     GenServer.call(__MODULE__, {:remove_client, client})
   end
 
+  def send_message(client, message) do
+    GenServer.call(__MODULE__, {:send_message, client, message})
+  end
+
   def broadcast_message(message) do
     GenServer.call(__MODULE__, {:broadcast_message, message})
   end
@@ -32,6 +36,18 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     end)
 
     {:reply, :ok, new_state}
+  end
+
+  def handle_call({:send_message, client, message}, _from, state) do
+    client = Enum.find(state, fn(compared_client) ->
+      compared_client.player_uuid == client.player_uuid
+    end)
+
+    if client && client.entrypoint_module do
+      client.entrypoint_module.send_message(client, message)
+    end
+
+    {:reply, :ok, state}
   end
 
   def handle_call({:broadcast_message, message}, _from, state) do
