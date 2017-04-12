@@ -6,20 +6,23 @@ defmodule Fluxspace.Entrypoints.TCP.Server do
   end
 
   def init() do
-    {:ok, socket} = :gen_tcp.listen(@port, [:binary, packet: 0, active: false, reuseaddr: true])
+    {:ok, listen_socket} = :gen_tcp.listen(@port, [:binary, packet: 0, active: false, reuseaddr: true])
 
     IO.puts("Started TCP server on #{@port}")
 
-    loop_acceptor(socket)
+    loop_acceptor(listen_socket)
   end
 
-  def loop_acceptor(socket) do
-    case :gen_tcp.accept(socket) do
+  def loop_acceptor(listen_socket) do
+    case :gen_tcp.accept(listen_socket) do
       {:ok, client_socket} ->
-        Fluxspace.Entrypoints.TCP.Client.start_link(client_socket)
-      _ -> :ok
+        {:ok, entrypoint_client_pid} = Fluxspace.Entrypoints.TCP.Client.start_link(client_socket)
+        :ok = :gen_tcp.controlling_process(client_socket, entrypoint_client_pid)
+        :ok = :inet.setopts(client_socket, [{:active, true}])
+      _ ->
+        :ok
     end
 
-    loop_acceptor(socket)
+    loop_acceptor(listen_socket)
   end
 end

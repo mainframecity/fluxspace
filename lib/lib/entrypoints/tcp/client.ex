@@ -1,72 +1,35 @@
 defmodule Fluxspace.Entrypoints.TCP.Client do
-  alias Fluxspace.Lib.Player
   alias Fluxspace.Entrypoints.Client
 
+  use GenServer
+
   def start_link(socket) do
-    client_pid = spawn_link(fn() ->
-      {:ok, player_uuid, player_pid} = Player.create()
-
-      client = %Client{
-        socket: socket,
-        entrypoint_module: Fluxspace.Entrypoints.TCP,
-        player_uuid: player_uuid,
-        player_pid: player_pid,
-        unique_ref: make_ref()
-      }
-
-      {:ok, client_pid} = Client.start_link(client)
-
-      new_client = %Client{
-        client |
-        client_pid: client_pid
-      }
-
-      serve(new_client)
-    end)
-
-    {:ok, client_pid}
+    GenServer.start_link(__MODULE__, socket, [])
   end
 
-  def serve(%Client{initialized: false} = client) do
-    Fluxspace.Menus.Login.call(client)
+  def init(socket) do
+    {:ok, client_pid} = Client.start_link(Fluxspace.Entrypoints.TCP, socket)
 
-    serve(%Client{client | initialized: true})
+    Client.enter_menu(client_pid, Fluxspace.Menus.Login)
+
+    {:ok, {socket, client_pid}}
   end
 
-  def serve(%Client{halted: true} = client) do
-    Client.stop(client)
-    :stop
+  def handle_info({:tcp, _socket, message}, {_, client} = state) do
+    handle_message(client, message)
+    {:noreply, state}
   end
 
-  def serve(client) do
-    case read_socket(client.socket) do
-      {:ok, data} ->
-        handle_message(data, client)
-        serve(client)
-      _ ->
-        serve(%Client{client | halted: true})
-    end
+  def handle_info({:tcp_closed, _socket}, {_, client_pid} = state) do
+    Client.stop(client_pid)
+    {:stop, :normal, state}
   end
 
-  # ---
-  # IO
-  # ---
+  def handle_message(client, <<255, 253, 1, 255, 253, 3>>), do: {:ok, client}
+  def handle_message(client, <<255, 252, 1, 255, 251, 3>>), do: {:ok, client}
+  def handle_message(client, <<255, 254, 1>>), do: {:ok, client}
 
-  def read_socket(socket) do
-    case :gen_tcp.recv(socket, 0) do
-      {:ok, data} ->
-        {:ok, data}
-      {:error, :timeout} ->
-        {:ok, ""}
-      _ -> :error
-    end
-  end
-
-  def handle_message(<<255, 253, 1, 255, 253, 3>>, client), do: {:ok, client}
-  def handle_message(<<255, 252, 1, 255, 251, 3>>, client), do: {:ok, client}
-  def handle_message(<<255, 254, 1>>, client), do: {:ok, client}
-
-  def handle_message(message, client) do
+  def handle_message(client, message) do
     Client.receive_message(client, message)
   end
 end
