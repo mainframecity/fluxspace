@@ -37,11 +37,11 @@ defmodule Fluxspace.Menus.Login do
     case AccountService.verify_password_for_username(username, password) do
       {:ok, _account} ->
         Client.send_message(client, "You're logged in!\n")
-        ClientGroup.broadcast_message("#{client.player_uuid} logged in.\n")
+        ClientGroup.broadcast_message("#{username} logged in.\n")
         Fluxspace.Commands.Index.do_command("help", client)
       :error ->
         Client.send_message(client, "Wrong username or password.\n")
-        Client.close(client)
+        Client.stop_all(client)
     end
   end
 
@@ -60,7 +60,7 @@ defmodule Fluxspace.Menus.Login do
         returning_player(client)
       _ ->
         Client.send_message(client, "Unexpected error occured while creating your account. Please try again later.\n")
-        Client.close(client)
+        Client.stop_all(client)
     end
   end
 

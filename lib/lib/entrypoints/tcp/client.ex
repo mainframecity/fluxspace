@@ -8,7 +8,7 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
   end
 
   def init(socket) do
-    {:ok, client_pid} = Client.start_link(Fluxspace.Entrypoints.TCP, socket)
+    {:ok, client_pid} = Client.start_link(self())
 
     Client.enter_menu(client_pid, Fluxspace.Menus.Login)
 
@@ -22,6 +22,16 @@ defmodule Fluxspace.Entrypoints.TCP.Client do
 
   def handle_info({:tcp_closed, _socket}, {_, client_pid} = state) do
     Client.stop(client_pid)
+    {:stop, :normal, state}
+  end
+
+  def handle_info({:send_message, message}, {socket, _} = state) do
+    :gen_tcp.send(socket, message)
+    {:noreply, state}
+  end
+
+  def handle_info(:close, {socket, _} = state) do
+    :gen_tcp.close(socket)
     {:stop, :normal, state}
   end
 

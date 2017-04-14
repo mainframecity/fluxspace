@@ -21,7 +21,7 @@ defmodule Fluxspace.Commands.Index do
   def do_command("say " <> message, client) do
     formatted_message = [
       "\n",
-      client.player_uuid,
+      "Someone",
       " says: ",
       message,
       "\n"
@@ -33,8 +33,8 @@ defmodule Fluxspace.Commands.Index do
   end
 
   def do_command("logout", client) do
-    ClientGroup.broadcast_message("#{client.player_uuid} logged out.\n")
-    Client.close(client)
+    ClientGroup.broadcast_message("Someone logged out.\n")
+    Client.stop_all(client)
 
     {:ok, client}
   end

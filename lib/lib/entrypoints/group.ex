@@ -4,6 +4,7 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
   """
 
   use GenServer
+  alias Fluxspace.Entrypoints.Client
 
   def start_link() do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
@@ -32,29 +33,15 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
   def handle_call({:remove_client, client}, _from, state) do
     new_state = state |> Enum.reject(fn(compared_client) ->
-      compared_client.unique_ref == client.unique_ref
+      compared_client == client
     end)
 
     {:reply, :ok, new_state}
   end
 
-  def handle_call({:send_message, client, message}, _from, state) do
-    client = Enum.find(state, fn(compared_client) ->
-      compared_client.unique_ref == client.unique_ref
-    end)
-
-    if client && client.entrypoint_module do
-      client.entrypoint_module.send_message(client, message)
-    end
-
-    {:reply, :ok, state}
-  end
-
   def handle_call({:broadcast_message, message}, _from, state) do
     state |> Enum.each(fn(client) ->
-      if client.entrypoint_module do
-        client.entrypoint_module.send_message(client, message)
-      end
+      Client.send_message(client, message)
     end)
 
     {:reply, :ok, state}

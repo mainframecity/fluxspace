@@ -13,7 +13,7 @@ defmodule Fluxspace.Entrypoints.Websocket.Client do
   end
 
   def websocket_init(_transport_name, req, _opts) do
-    {:ok, client_pid} = Client.start_link(Fluxspace.Entrypoints.Websocket, self())
+    {:ok, client_pid} = Client.start_link(self())
 
     Client.enter_menu(client_pid, Fluxspace.Menus.Login)
 
