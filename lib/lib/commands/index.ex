@@ -51,7 +51,9 @@ defmodule Fluxspace.Commands.Index do
       end)
       |> Enum.join(", ")
 
-    Client.send_message(client, "You look around and you see: #{player_names}\n")
+    room_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(room_pid)
+
+    Client.send_message(client, "#{room_description} It contains: #{player_names}\n")
   end
 
   def do_command(_, client, _) do
