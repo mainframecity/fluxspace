@@ -7,6 +7,7 @@ defmodule Fluxspace.Commands.Index do
 
   help - Display this message.
   say <message> - Say a message.
+  look - Look around the room.
   logout - Logs you out.
   ------------------------------
 
@@ -39,6 +40,17 @@ defmodule Fluxspace.Commands.Index do
     Client.stop_all(client)
 
     {:ok, client}
+  end
+
+  def do_command("look", client, _) do
+    room_pid = ClientGroup.get_room()
+    players = Fluxspace.Lib.Room.get_entities(room_pid)
+    player_names = Enum.map(players, fn(player_pid) ->
+        Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+      end)
+      |> Enum.join(", ")
+
+    Client.send_message(client, "You look around and you see: #{player_names}\n")
   end
 
   def do_command(_, client, _) do
