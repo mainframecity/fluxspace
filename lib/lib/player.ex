@@ -23,9 +23,9 @@ defmodule Fluxspace.Lib.Player do
     entity_pid |> Inventory.register()
     entity_pid |> Appearance.register(
       %{
-        name: "Unnamed Player",
-        short_description: "This person does not seem to have any history or description.",
-        long_description: "This person does not seem to have any history or description."
+        name: Map.get(attributes, :name, "Unnamed Player"),
+        short_description: Map.get(attributes, :short_description, "This person does not seem to have any history or description."),
+        long_description: Map.get(attributes, :long_description, "This person does not seem to have any history or description.")
       }
     )
 

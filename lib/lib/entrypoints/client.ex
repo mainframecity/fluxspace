@@ -1,12 +1,15 @@
 defmodule Fluxspace.Entrypoints.ClientState do
   defstruct [
+    state: :not_logged_in,
     socket: nil,
-    callbacks: []
+    callbacks: [],
+    player_pid: nil
   ]
 end
 
 defmodule Fluxspace.Entrypoints.Client do
   alias Fluxspace.Entrypoints.ClientState
+  alias Fluxspace.Lib.Player
 
   use GenServer
 
@@ -31,6 +34,10 @@ defmodule Fluxspace.Entrypoints.Client do
     GenServer.call(client_pid, {:enter_menu, menu_module})
   end
 
+  def initialize_player(client_pid, player_attributes) do
+    GenServer.cast(client_pid, {:initialize_player, player_attributes})
+  end
+
   def stop(client_pid) when is_pid(client_pid) do
     GenServer.stop(client_pid)
   end
@@ -49,6 +56,7 @@ defmodule Fluxspace.Entrypoints.Client do
 
   def init(client) do
     Fluxspace.Entrypoints.ClientGroup.add_client(self())
+
     {:ok, client}
   end
 
@@ -72,7 +80,7 @@ defmodule Fluxspace.Entrypoints.Client do
 
       {:noreply, new_state}
     else
-      Fluxspace.Commands.Index.do_command(normalized_message, self())
+      Fluxspace.Commands.Index.do_command(normalized_message, self(), state.player_pid)
 
       {:noreply, state}
     end
@@ -81,6 +89,21 @@ defmodule Fluxspace.Entrypoints.Client do
   def handle_cast(:stop_all, state) do
     send(state.socket, :close)
     {:stop, :normal, state}
+  end
+
+  def handle_cast({:initialize_player, player_attributes}, state) do
+    {:ok, _player_uuid, player_pid} = Player.create(player_attributes)
+
+    room_pid = Fluxspace.Entrypoints.ClientGroup.get_room()
+    Fluxspace.Lib.Room.add_entity(room_pid, player_pid)
+
+    new_state = %ClientState{
+      state |
+      state: :logged_in,
+      player_pid: player_pid
+    }
+
+    {:noreply, new_state}
   end
 
   def handle_call({:register_callback, pid}, _from, state) do

@@ -38,7 +38,8 @@ defmodule Fluxspace.Menus.Login do
       {:ok, _account} ->
         Client.send_message(client, "You're logged in!\n")
         ClientGroup.broadcast_message("#{username} logged in.\n")
-        Fluxspace.Commands.Index.do_command("help", client)
+        Client.initialize_player(client, %{name: username})
+        Fluxspace.Commands.Index.do_command("help", client, nil)
       :error ->
         Client.send_message(client, "Wrong username or password.\n")
         Client.stop_all(client)
