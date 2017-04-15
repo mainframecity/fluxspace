@@ -8,6 +8,7 @@ defmodule Fluxspace.Commands.Index do
   help - Display this message.
   say <message> - Say a message.
   look - Look around the room.
+  look at <name> - Look at a thing.
   logout - Logs you out.
   ------------------------------
 
@@ -54,6 +55,28 @@ defmodule Fluxspace.Commands.Index do
     room_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(room_pid)
 
     Client.send_message(client, "#{room_description} It contains: #{player_names}\n")
+  end
+
+  def do_command("look at " <> entity_name, client, _) do
+    room_pid = ClientGroup.get_room()
+    entities = Fluxspace.Lib.Room.get_entities(room_pid)
+    entities_with_name = Stream.map(entities, fn(entity_pid) ->
+        {entity_pid, Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)}
+      end)
+      |> Stream.reject(fn({_, name}) -> is_nil(name) end)
+      |> Stream.filter(fn({_, name}) ->
+        String.jaro_distance(entity_name, name) > 0.9
+      end)
+      |> Enum.to_list()
+
+    case entities_with_name do
+      [] ->
+        Client.send_message(client, "There doesn't seem to be anything here by that name.\r\n")
+      _ ->
+        {entity_pid, real_entity_name} = List.last(entities_with_name)
+        entity_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(entity_pid)
+        Client.send_message(client, "You look at #{real_entity_name}. #{entity_description}\r\n")
+    end
   end
 
   def do_command(_, client, _) do

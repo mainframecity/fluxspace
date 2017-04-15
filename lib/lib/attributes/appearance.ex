@@ -37,7 +37,7 @@ defmodule Fluxspace.Lib.Attributes.Appearance do
   def get_name(entity_pid) when is_pid(entity_pid) do
     case can_be_described?(entity_pid) do
       true -> Entity.call_behaviour(entity_pid, Appearance.Behaviour, :get_name)
-      false -> "This thing cannot be described!"
+      false -> nil
     end
   end
 
