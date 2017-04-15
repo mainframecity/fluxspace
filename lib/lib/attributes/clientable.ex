@@ -52,7 +52,7 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
 
     def handle_call({:send_message, message}, entity) do
       send_message(entity, message)
-      {:ok, entity}
+      {:ok, :ok, entity}
     end
 
     def handle_event({:send_message, message}, entity) do

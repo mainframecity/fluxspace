@@ -93,6 +93,7 @@ defmodule Fluxspace.Entrypoints.Client do
 
   def handle_cast({:initialize_player, player_attributes}, state) do
     {:ok, _player_uuid, player_pid} = Player.create(player_attributes)
+    Fluxspace.Lib.Attributes.Clientable.register(player_pid, %{client_pid: self()})
 
     room_pid = Fluxspace.Entrypoints.ClientGroup.get_room()
     Fluxspace.Lib.Room.add_entity(room_pid, player_pid)

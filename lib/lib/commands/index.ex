@@ -57,25 +57,29 @@ defmodule Fluxspace.Commands.Index do
     Client.send_message(client, "#{room_description} It contains: #{player_names}\n")
   end
 
-  def do_command("look at " <> entity_name, client, _) do
+  def do_command("look at " <> entity_name, client, player_pid) do
+    calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
     room_pid = ClientGroup.get_room()
     entities = Fluxspace.Lib.Room.get_entities(room_pid)
     entities_with_name = Stream.map(entities, fn(entity_pid) ->
         {entity_pid, Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)}
       end)
       |> Stream.reject(fn({_, name}) -> is_nil(name) end)
-      |> Stream.filter(fn({_, name}) ->
-        String.jaro_distance(entity_name, name) > 0.9
+      |> Stream.map(fn({entity_pid, name}) ->
+        {entity_pid, name, String.jaro_distance(entity_name, name)}
       end)
       |> Enum.to_list()
+      |> Enum.sort(fn({_, _, first_distance}, {_, _, second_distance}) -> first_distance >= second_distance end)
 
     case entities_with_name do
       [] ->
         Client.send_message(client, "There doesn't seem to be anything here by that name.\r\n")
       _ ->
-        {entity_pid, real_entity_name} = List.last(entities_with_name)
+        {entity_pid, real_entity_name, _} = hd(entities_with_name)
         entity_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(entity_pid)
+
         Client.send_message(client, "You look at #{real_entity_name}. #{entity_description}\r\n")
+        Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} looks at you.\r\n")
     end
   end
 
