@@ -25,7 +25,7 @@ defmodule Fluxspace.Lib.AppearanceTest do
     {:ok, _uuid, entity_pid} = Entity.start
 
     assert false == entity_pid |> Entity.has_behaviour?(Appearance.Behaviour)
-    assert @unnamed == Appearance.get_name(entity_pid)
+    assert nil == Appearance.get_name(entity_pid) # Except for names, because they are used for identifying.
     assert @unnamed == Appearance.get_short_description(entity_pid)
     assert @unnamed == Appearance.get_long_description(entity_pid)
   end
