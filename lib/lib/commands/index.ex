@@ -35,8 +35,9 @@ defmodule Fluxspace.Commands.Index do
     {:ok, client}
   end
 
-  def do_command("logout", client, _) do
-    ClientGroup.broadcast_message("Someone logged out.\n")
+  def do_command("logout", client, player_pid) do
+    name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+    ClientGroup.broadcast_message("#{name} logged out.\n")
     Client.stop_all(client)
 
     {:ok, client}
