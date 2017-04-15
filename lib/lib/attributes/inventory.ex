@@ -75,7 +75,7 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
     end
 
     def handle_event({:add_entity, item_pid}, entity) do
-      new_entity = update_attribute(entity, Inventory, fn inventory ->
+      new_entity = update_attribute(entity, Inventory, fn(inventory) ->
         %Inventory{inventory | entities: [item_pid | inventory.entities]}
       end)
 
@@ -87,14 +87,22 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
 
       case entities do
         [] -> :ok
-        [_|_] = members -> members |> Enum.map(fn pid -> send(pid, message) end)
+        [_|_] = members -> members |> Enum.map(fn(pid) -> send(pid, message) end)
       end
 
       {:ok, entity}
     end
 
+    def handle_event({:entity_died, entity_pid}, entity) do
+      new_entity = update_attribute(entity, Inventory, fn(inventory) ->
+        %Inventory{inventory | entities: Enum.reject(inventory.entities, &(&1 == entity_pid))}
+      end)
+
+      {:ok, new_entity}
+    end
+
     def handle_call({:remove_entity, item_pid}, entity) do
-      new_entity = update_attribute(entity, Inventory, fn inventory ->
+      new_entity = update_attribute(entity, Inventory, fn(inventory) ->
         %Inventory{inventory | entities: Enum.reject(inventory.entities, &(&1 == item_pid))}
       end)
 

@@ -120,6 +120,12 @@ defmodule Fluxspace.Radio do
     def terminate(_error, entity) do
       case :pg2.get_members(entity.uuid) do
         {:error, {:no_such_group, _}} -> :ok
+        [] -> :ok
+        members -> members |> Enum.map(fn(pid) -> send(pid, {:entity_died, self()}) end)
+      end
+
+      case :pg2.get_members(entity.uuid) do
+        {:error, {:no_such_group, _}} -> :ok
         _ -> :pg2.delete(entity.uuid)
       end
 
