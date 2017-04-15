@@ -14,7 +14,7 @@ defmodule Fluxspace.RadioTest do
   end
 
   test "Can listen on another entity", %{entity_uuid: entity_uuid} do
-    Radio.register_observer(self, Entity.locate_pid!(entity_uuid))
+    Radio.register_observer(self(), Entity.locate_pid!(entity_uuid))
     entity_uuid |> Radio.notify_all(:foo)
 
     assert_receive :foo

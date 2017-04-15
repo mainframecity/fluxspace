@@ -80,7 +80,7 @@ defmodule Fluxspace.GenSyncTest do
 
   setup do
     {:ok, pid} = GenSync.start_link({:state, %{}})
-    GenSync.put_handler(pid, TestHandler, self)
+    GenSync.put_handler(pid, TestHandler, self())
     {:ok, [handler: pid]}
   end
 
@@ -126,7 +126,7 @@ defmodule Fluxspace.GenSyncTest do
     refute_receive _
 
     # And then we can add the handler back
-    GenSync.put_handler(pid, TestHandler, self)
+    GenSync.put_handler(pid, TestHandler, self())
     assert GenSync.has_handler?(pid, TestHandler) == true
     GenSync.notify(pid, :bar)
     assert_receive {:got, :bar}

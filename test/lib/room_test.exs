@@ -64,6 +64,8 @@ defmodule Fluxspace.Lib.RoomTest do
 
   test "Can listen to events on entities", %{room_pid: room_pid} do
     {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
+
+    Radio.register_observer(self(), entity_pid)
     room_pid |> Room.add_entity(entity_pid)
     entity_pid |> Test.register(%{test_pid: self()})
     entity_pid |> Radio.notify(:to_room)
