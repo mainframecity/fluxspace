@@ -27,8 +27,8 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     GenServer.call(__MODULE__, {:send_message, client, message})
   end
 
-  def broadcast_message(message) do
-    GenServer.call(__MODULE__, {:broadcast_message, message})
+  def broadcast_message(sender_client, message) do
+    GenServer.call(__MODULE__, {:broadcast_message, sender_client, message})
   end
 
   def get_room() do
@@ -37,6 +37,17 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
   def init(state) do
     {:ok, _room_uuid, room_pid} = Fluxspace.Lib.Room.create()
+    {:ok, _, terminal} = Fluxspace.Entity.start_plain()
+
+    Fluxspace.Lib.Attributes.Appearance.register(terminal,
+      %{
+        name: "a terminal",
+        short_description: "It connects you to the outside world.",
+        long_description: "A dented yellow-ish terminal box with a glass screen that bulges out from the front-facing side. A keyboard is soldered onto the front."
+      }
+    )
+
+    Fluxspace.Lib.Room.add_entity(room_pid, terminal)
 
     new_state = %__MODULE__{
       state |
@@ -66,9 +77,11 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     {:reply, :ok, new_state}
   end
 
-  def handle_call({:broadcast_message, message}, _from, state) do
+  def handle_call({:broadcast_message, sender_client, message}, _from, state) do
     Enum.each(state.clients, fn(client) ->
-      Client.send_message(client, message)
+      if client != sender_client do
+        Client.send_message(client, message)
+      end
     end)
 
     {:reply, :ok, state}

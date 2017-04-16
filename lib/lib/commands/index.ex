@@ -31,20 +31,20 @@ defmodule Fluxspace.Commands.Index do
       "\n"
     ]
 
-    ClientGroup.broadcast_message(formatted_message)
+    ClientGroup.broadcast_message(client, formatted_message)
 
     {:ok, client}
   end
 
   def do_command("logout", client, player_pid) do
     name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
-    ClientGroup.broadcast_message("#{name} logged out.\n")
+    ClientGroup.broadcast_message(client, "#{name} logged out.\n")
     Client.stop_all(client)
 
     {:ok, client}
   end
 
-  def do_command("look", client, _) do
+  def do_command("look", client, player_pid) do
     room_pid = ClientGroup.get_room()
     players = Fluxspace.Lib.Room.get_entities(room_pid)
     player_names = Enum.map(players, fn(player_pid) ->
@@ -53,6 +53,9 @@ defmodule Fluxspace.Commands.Index do
       |> Enum.join(", ")
 
     room_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(room_pid)
+
+    name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+    ClientGroup.broadcast_message(client, "#{name} looks around the room.\n")
 
     Client.send_message(client, "#{room_description} It contains: #{player_names}\n")
   end

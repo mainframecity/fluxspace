@@ -29,8 +29,8 @@ defmodule Fluxspace.Entity do
     {:ok, pid} = GenSync.start_link(%Entity{uuid: entity_uuid, attributes: attributes})
 
     :gproc.reg_other({:n, :l, entity_uuid}, pid)
-    pid |> Radio.register
-    pid |> Attribute.register
+    Radio.register(pid)
+    Attribute.register(pid)
 
     {:ok, entity_uuid, pid}
   end

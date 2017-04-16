@@ -37,7 +37,7 @@ defmodule Fluxspace.Menus.Login do
     case AccountService.verify_password_for_username(username, password) do
       {:ok, _account} ->
         Client.send_message(client, "You're logged in!\n")
-        ClientGroup.broadcast_message("#{username} logged in.\n")
+        ClientGroup.broadcast_message(client, "#{username} logged in.\n")
         Client.initialize_player(client, %{name: username})
         Fluxspace.Commands.Index.do_command("help", client, nil)
       :error ->
