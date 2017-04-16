@@ -41,7 +41,7 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
     Fluxspace.Lib.Attributes.Appearance.register(terminal,
       %{
-        name: "a terminal",
+        name: "terminal",
         short_description: "It connects you to the outside world.",
         long_description: "A dented yellow-ish terminal box with a glass screen that bulges out from the front-facing side. A keyboard is soldered onto the front."
       }

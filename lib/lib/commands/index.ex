@@ -5,6 +5,10 @@ defmodule Fluxspace.Commands.Index do
   ------------------------------
   Welcome to Fluxspace.
 
+  [DEBUG]
+  spawn <name>, <description> - Debug command to spawn an entity in the current room.
+
+  [NORMAL]
   help - Display this message.
   say <message> - Say a message.
   look - Look around the room.
@@ -49,8 +53,14 @@ defmodule Fluxspace.Commands.Index do
   def do_command("look", client, player_pid) do
     room_pid = ClientGroup.get_room()
     players = Fluxspace.Lib.Room.get_entities(room_pid)
-    player_names = Enum.map(players, fn(player_pid) ->
-        Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+    player_names = Enum.map(players, fn(entity_pid) ->
+        name = Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)
+
+        if Fluxspace.Lib.Player.is_player?(entity_pid) do
+          name
+        else
+          Fluxspace.Determiners.determine(name)
+        end
       end)
       |> Enum.join(", ")
 
@@ -117,10 +127,41 @@ defmodule Fluxspace.Commands.Index do
               Client.send_message(client, "You whisper to #{real_entity_name}.\r\n")
               Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} whispers to you, \"#{message}\"\r\n")
             else
-              Client.send_message(client, "You attempt to whisper to #{real_entity_name}.. but it doesn't respond.\r\n")
+              Client.send_message(client, "You attempt to whisper to a #{real_entity_name}.. but it doesn't respond.\r\n")
             end
         end
       end
+  end
+
+  def do_command("spawn " <> command, client, player_pid) do
+    calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+    room_pid = ClientGroup.get_room()
+
+    case String.split(command, ", ") do
+      [] ->
+        Client.send_message(client, "I'm sorry, what?")
+      [_ | []] ->
+        Client.send_message(client, "I'm sorry, what?")
+      [entity_name, description] ->
+
+        {:ok, _, item} = Fluxspace.Entity.start_plain()
+
+        Fluxspace.Lib.Attributes.Appearance.register(item,
+          %{
+            name: entity_name,
+            short_description: description,
+            long_description: description
+          }
+        )
+
+        proper_name = Fluxspace.Determiners.determine(entity_name)
+
+        Fluxspace.Lib.Room.add_entity(room_pid, item)
+        Client.send_message(client, "You spawn in #{proper_name} from thin air.\r\n")
+        ClientGroup.broadcast_message(client, "With a wave of their fingers, #{calling_name} spawns in a #{proper_name} from thin air.\r\n")
+      _ ->
+        Client.send_message(client, "I'm sorry what?")
+    end
   end
 
   def do_command(_, client, _) do
