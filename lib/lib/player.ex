@@ -32,6 +32,10 @@ defmodule Fluxspace.Lib.Player do
     {:ok, entity_uuid, entity_pid}
   end
 
+  def is_player?(entity_pid) do
+    entity_pid |> Entity.has_behaviour?(Player.Behaviour)
+  end
+
   @doc """
   Registers a Player.Behaviour to an Entity.
   """

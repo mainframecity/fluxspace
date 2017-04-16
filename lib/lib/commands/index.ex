@@ -9,6 +9,7 @@ defmodule Fluxspace.Commands.Index do
   say <message> - Say a message.
   look - Look around the room.
   look at <name> - Look at a thing.
+  whisper to <name> <message> - Whisper a message to someone.
   logout - Logs you out.
   ------------------------------
 
@@ -31,6 +32,7 @@ defmodule Fluxspace.Commands.Index do
       "\n"
     ]
 
+    Client.send_message(client, "You say, \"#{message}\".\r\n")
     ClientGroup.broadcast_message(client, formatted_message)
 
     {:ok, client}
@@ -84,6 +86,41 @@ defmodule Fluxspace.Commands.Index do
         Client.send_message(client, "You look at #{real_entity_name}. #{entity_description}\r\n")
         Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} looks at you.\r\n")
     end
+  end
+
+  def do_command("whisper to " <> command, client, player_pid) do
+    case String.split(command) do
+      [] ->
+        Client.send_message(client, "I'm sorry, what?")
+      [_ | []] ->
+        Client.send_message(client, "I'm sorry, what?")
+      [entity_name, message] ->
+        calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+        room_pid = ClientGroup.get_room()
+        entities = Fluxspace.Lib.Room.get_entities(room_pid)
+        entities_with_name = Stream.map(entities, fn(entity_pid) ->
+            {entity_pid, Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)}
+          end)
+          |> Stream.reject(fn({_, name}) -> is_nil(name) end)
+          |> Stream.map(fn({entity_pid, name}) ->
+            {entity_pid, name, String.jaro_distance(entity_name, name)}
+          end)
+          |> Enum.to_list()
+          |> Enum.sort(fn({_, _, first_distance}, {_, _, second_distance}) -> first_distance >= second_distance end)
+        case entities_with_name do
+          [] ->
+            Client.send_message(client, "There doesn't seem to be anyone here by that name.\r\n")
+          _ ->
+            {entity_pid, real_entity_name, _} = hd(entities_with_name)
+
+            if Fluxspace.Lib.Player.is_player?(entity_pid) do
+              Client.send_message(client, "You whisper to #{real_entity_name}.\r\n")
+              Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} whispers to you, \"#{message}\"\r\n")
+            else
+              Client.send_message(client, "You attempt to whisper to #{real_entity_name}.. but it doesn't respond.\r\n")
+            end
+        end
+      end
   end
 
   def do_command(_, client, _) do
