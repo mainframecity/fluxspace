@@ -50,6 +50,19 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
       }
     )
 
+    Fluxspace.Lib.Attributes.Scriptable.register(terminal,
+     %{
+       lua_code: """
+       counter = 0
+
+       function handle_look_from(pid)
+         counter = counter + 1
+         send_message(pid, string.format("The terminal bleeps '%d'.", counter))
+       end
+       """
+     }
+   )
+
     Fluxspace.Lib.Room.add_entity(room_pid, terminal)
 
     new_state = %__MODULE__{

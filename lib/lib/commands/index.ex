@@ -99,6 +99,7 @@ defmodule Fluxspace.Commands.Index do
 
         Attributes.Clientable.send_message(player_pid, "You look at #{real_entity_name}. #{entity_description}\r\n")
         Attributes.Clientable.send_message(entity_pid, "#{calling_name} looks at you.\r\n")
+        Fluxspace.Radio.notify(entity_pid, {:look_from, player_pid})
     end
   end
 
