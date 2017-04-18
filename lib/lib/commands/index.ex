@@ -1,6 +1,8 @@
 defmodule Fluxspace.Commands.Index do
   alias Fluxspace.Entrypoints.{Client, ClientGroup}
 
+  alias Fluxspace.Lib.Attributes
+
   @help """
   ------------------------------
   Welcome to Fluxspace.
@@ -19,42 +21,45 @@ defmodule Fluxspace.Commands.Index do
 
   """
 
-  def do_command("help", client, _player_pid) do
-    Client.send_message(client, @help)
+  def do_command("help", client, player_pid) do
+    Attributes.Clientable.send_message(player_pid, @help)
 
     {:ok, client}
   end
 
   def do_command("say " <> message, client, player_pid) do
-    name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+    room_pid = ClientGroup.get_room()
+    name = Attributes.Appearance.get_name(player_pid)
 
     formatted_message = [
       "\n",
       name,
-      " says: ",
+      " says, \"",
       message,
-      "\n"
+      "\"\n"
     ]
 
-    Client.send_message(client, "You say, \"#{message}\".\r\n")
-    ClientGroup.broadcast_message(client, formatted_message)
+    Attributes.Clientable.send_message(player_pid, "You say, \"#{message}\".\r\n")
+    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, formatted_message})
 
     {:ok, client}
   end
 
   def do_command("logout", client, player_pid) do
-    name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
-    ClientGroup.broadcast_message(client, "#{name} logged out.\n")
+    room_pid = ClientGroup.get_room()
+    name = Attributes.Appearance.get_name(player_pid)
+
+    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "#{name} logged out.\r\n"})
     Client.stop_all(client)
 
     {:ok, client}
   end
 
-  def do_command("look", client, player_pid) do
+  def do_command("look", _, player_pid) do
     room_pid = ClientGroup.get_room()
     players = Fluxspace.Lib.Room.get_entities(room_pid)
     player_names = Enum.map(players, fn(entity_pid) ->
-        name = Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)
+        name = Attributes.Appearance.get_name(entity_pid)
 
         if Fluxspace.Lib.Player.is_player?(entity_pid) do
           name
@@ -64,20 +69,19 @@ defmodule Fluxspace.Commands.Index do
       end)
       |> Enum.join(", ")
 
-    room_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(room_pid)
+    room_description = Attributes.Appearance.get_long_description(room_pid)
+    name = Attributes.Appearance.get_name(player_pid)
 
-    name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
-    ClientGroup.broadcast_message(client, "#{name} looks around the room.\n")
-
-    Client.send_message(client, "#{room_description} It contains: #{player_names}\n")
+    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "#{name} looks around the room.\n"})
+    Attributes.Clientable.send_message(player_pid, "#{room_description} It contains: #{player_names}\n")
   end
 
-  def do_command("look at " <> entity_name, client, player_pid) do
-    calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+  def do_command("look at " <> entity_name, _client, player_pid) do
+    calling_name = Attributes.Appearance.get_name(player_pid)
     room_pid = ClientGroup.get_room()
     entities = Fluxspace.Lib.Room.get_entities(room_pid)
     entities_with_name = Stream.map(entities, fn(entity_pid) ->
-        {entity_pid, Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)}
+        {entity_pid, Attributes.Appearance.get_name(entity_pid)}
       end)
       |> Stream.reject(fn({_, name}) -> is_nil(name) end)
       |> Stream.map(fn({entity_pid, name}) ->
@@ -88,28 +92,28 @@ defmodule Fluxspace.Commands.Index do
 
     case entities_with_name do
       [] ->
-        Client.send_message(client, "There doesn't seem to be anything here by that name.\r\n")
+        Attributes.Clientable.send_message(player_pid, "There doesn't seem to be anything here by that name.\r\n")
       _ ->
         {entity_pid, real_entity_name, _} = hd(entities_with_name)
-        entity_description = Fluxspace.Lib.Attributes.Appearance.get_long_description(entity_pid)
+        entity_description = Attributes.Appearance.get_long_description(entity_pid)
 
-        Client.send_message(client, "You look at #{real_entity_name}. #{entity_description}\r\n")
-        Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} looks at you.\r\n")
+        Attributes.Clientable.send_message(player_pid, "You look at #{real_entity_name}. #{entity_description}\r\n")
+        Attributes.Clientable.send_message(entity_pid, "#{calling_name} looks at you.\r\n")
     end
   end
 
-  def do_command("whisper to " <> command, client, player_pid) do
+  def do_command("whisper to " <> command, _client, player_pid) do
     case String.split(command) do
       [] ->
-        Client.send_message(client, "I'm sorry, what?")
+        Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
       [_ | []] ->
-        Client.send_message(client, "I'm sorry, what?")
+        Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
       [entity_name, message] ->
-        calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+        calling_name = Attributes.Appearance.get_name(player_pid)
         room_pid = ClientGroup.get_room()
         entities = Fluxspace.Lib.Room.get_entities(room_pid)
         entities_with_name = Stream.map(entities, fn(entity_pid) ->
-            {entity_pid, Fluxspace.Lib.Attributes.Appearance.get_name(entity_pid)}
+            {entity_pid, Attributes.Appearance.get_name(entity_pid)}
           end)
           |> Stream.reject(fn({_, name}) -> is_nil(name) end)
           |> Stream.map(fn({entity_pid, name}) ->
@@ -119,34 +123,34 @@ defmodule Fluxspace.Commands.Index do
           |> Enum.sort(fn({_, _, first_distance}, {_, _, second_distance}) -> first_distance >= second_distance end)
         case entities_with_name do
           [] ->
-            Client.send_message(client, "There doesn't seem to be anyone here by that name.\r\n")
+            Attributes.Clientable.send_message(player_pid, "There doesn't seem to be anything here by that name.\r\n")
           _ ->
             {entity_pid, real_entity_name, _} = hd(entities_with_name)
 
             if Fluxspace.Lib.Player.is_player?(entity_pid) do
-              Client.send_message(client, "You whisper to #{real_entity_name}.\r\n")
-              Fluxspace.Lib.Attributes.Clientable.send_message(entity_pid, "#{calling_name} whispers to you, \"#{message}\"\r\n")
+              Attributes.Clientable.send_message(player_pid, "You whisper to #{real_entity_name}, \"#{message}\"\r\n")
+              Attributes.Clientable.send_message(entity_pid, "#{calling_name} whispers to you, \"#{message}\"\r\n")
             else
-              Client.send_message(client, "You attempt to whisper to a #{real_entity_name}.. but it doesn't respond.\r\n")
+              Attributes.Clientable.send_message(player_pid, "You attempt to whisper to a #{real_entity_name}.. but it doesn't respond.\r\n")
             end
         end
       end
   end
 
-  def do_command("spawn " <> command, client, player_pid) do
-    calling_name = Fluxspace.Lib.Attributes.Appearance.get_name(player_pid)
+  def do_command("spawn " <> command, _client, player_pid) do
+    calling_name = Attributes.Appearance.get_name(player_pid)
     room_pid = ClientGroup.get_room()
 
     case String.split(command, ", ") do
       [] ->
-        Client.send_message(client, "I'm sorry, what?")
+        Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
       [_ | []] ->
-        Client.send_message(client, "I'm sorry, what?")
+        Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
       [entity_name, description] ->
 
         {:ok, _, item} = Fluxspace.Entity.start_plain()
 
-        Fluxspace.Lib.Attributes.Appearance.register(item,
+        Attributes.Appearance.register(item,
           %{
             name: entity_name,
             short_description: description,
@@ -157,15 +161,15 @@ defmodule Fluxspace.Commands.Index do
         proper_name = Fluxspace.Determiners.determine(entity_name)
 
         Fluxspace.Lib.Room.add_entity(room_pid, item)
-        Client.send_message(client, "You spawn in #{proper_name} from thin air.\r\n")
-        ClientGroup.broadcast_message(client, "With a wave of their fingers, #{calling_name} spawns in a #{proper_name} from thin air.\r\n")
+        Attributes.Clientable.send_message(player_pid, "You spawn in #{proper_name} from thin air.\r\n")
+        Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "With a wave of their fingers, #{calling_name} spawns in a #{proper_name} from thin air.\r\n"})
       _ ->
-        Client.send_message(client, "I'm sorry what?")
+        Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
     end
   end
 
-  def do_command(_, client, _) do
-    Client.send_message(client, "I'm sorry, what?")
+  def do_command(_, client, player_pid) do
+    Attributes.Clientable.send_message(player_pid, "I'm sorry, what?\r\n")
 
     {:error, client}
   end

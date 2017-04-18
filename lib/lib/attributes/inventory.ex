@@ -62,6 +62,20 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
     inventory_pid |> Entity.call_behaviour(Inventory.Behaviour, :get_entities)
   end
 
+  @doc """
+  Notifies all entities in this inventory.
+  """
+  def notify(inventory_pid, message) when is_pid(inventory_pid) do
+    Radio.notify(inventory_pid, {:notify, message})
+  end
+
+  @doc """
+  Notifies all entities in this inventory EXCEPT for this pid.
+  """
+  def notify_except(inventory_pid, except_this_pid, message) when is_pid(inventory_pid) and is_pid(except_this_pid) do
+    Radio.notify(inventory_pid, {:notify_except, except_this_pid, message})
+  end
+
   defmodule Behaviour do
     use Entity.Behaviour
 
@@ -80,6 +94,22 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
       end)
 
       {:ok, new_entity}
+    end
+
+    def handle_event({:notify_except, except_this_pid, message}, entity) do
+      entities = get_entities(entity)
+
+      case entities do
+        [] -> :ok
+        [_|_] = members ->
+          members |> Enum.each(fn(pid) ->
+            if pid != except_this_pid do
+              send(pid, message)
+            end
+          end)
+      end
+
+      {:ok, entity}
     end
 
     def handle_event({:notify, message}, entity) do

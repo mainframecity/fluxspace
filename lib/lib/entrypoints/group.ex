@@ -39,6 +39,9 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     {:ok, _room_uuid, room_pid} = Fluxspace.Lib.Room.create()
     {:ok, _, terminal} = Fluxspace.Entity.start_plain()
 
+    # Spy on the room for broadcast messages.
+    Fluxspace.Radio.register_observer(self(), room_pid)
+
     Fluxspace.Lib.Attributes.Appearance.register(terminal,
       %{
         name: "terminal",
@@ -55,6 +58,12 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
     }
 
     {:ok, new_state}
+  end
+
+  def handle_info({:broadcast_message, message}, state) do
+    _broadcast_message(state.clients, message)
+
+    {:noreply, state}
   end
 
   def handle_call({:add_client, client}, _from, state) do
@@ -89,5 +98,11 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
   def handle_call(:get_room, _from, state) do
     {:reply, state.room_pid, state}
+  end
+
+  def _broadcast_message(clients, message) do
+    Enum.each(clients, fn(client) ->
+      Client.send_message(client, message)
+    end)
   end
 end
