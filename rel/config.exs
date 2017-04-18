@@ -41,7 +41,8 @@ end
 release :fluxspace do
   set version: current_version(:fluxspace)
   set applications: [
-    :runtime_tools
+    :runtime_tools,
+    luerl: :load
   ]
 end
 

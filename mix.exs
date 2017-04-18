@@ -3,7 +3,7 @@ defmodule Fluxspace.Mixfile do
 
   def project do
     [app: :fluxspace,
-     version: "0.0.7",
+     version: "0.0.8",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -14,8 +14,11 @@ defmodule Fluxspace.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Fluxspace, []},
-     applications: [:cowboy, :logger, :gproc, :uuid, :poison, :postgrex, :ecto, :comeonin, :edeliver]]
+    [
+      mod: {Fluxspace, []},
+      applications: [:cowboy, :logger, :gproc, :uuid, :poison, :postgrex, :ecto, :comeonin, :exlua, :edeliver],
+      loaded_applications: [:luerl]
+    ]
   end
 
   # Specifies your project dependencies.
@@ -31,7 +34,7 @@ defmodule Fluxspace.Mixfile do
       {:ecto, "~> 2.1"},
       {:comeonin, "~> 3.0"},
       {:exlua, github: "bendiken/exlua", branch: "master"},
-      {:luerl, github: "bendiken/luerl", branch: "exlua", compile: "make && cp src/luerl.app.src ebin/luerl.app"},
+      {:luerl, github: "bendiken/luerl", branch: "exlua", override: true},
       {:edeliver, "~> 1.4.2"},
       {:distillery, ">= 0.8.0", warn_missing: false},
     ]
