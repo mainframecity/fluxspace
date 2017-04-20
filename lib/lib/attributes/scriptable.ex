@@ -29,10 +29,12 @@ defmodule Fluxspace.Lib.Attributes.Scriptable do
       lua_state =
         Lua.State.new()
         |> Lua.set_global(:self, encode_pid(self()))
-        |> Lua.set_global(:send_message, fn(state, [pid, message]) ->
-          send(decode_pid(pid), {:send_message, [message, "\r\n"]})
-          {state, [true]}
-        end)
+        |> Lua.set_global(:fluxspace, %{
+          send_message: fn(state, [pid, message]) ->
+            send(decode_pid(pid), {:send_message, [message, "\r\n"]})
+            {state, [true]}
+          end
+        })
         |> Lua.exec!(Map.get(attributes, :lua_code, ""))
 
       scriptable = %Scriptable{

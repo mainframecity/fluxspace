@@ -57,7 +57,7 @@ defmodule Fluxspace.Entrypoints.ClientGroup do
 
        function handle_look_from(pid)
          counter = counter + 1
-         send_message(pid, string.format("The terminal bleeps '%d'.", counter))
+         fluxspace.send_message(pid, string.format("The terminal bleeps '%d'.", counter))
        end
        """
      }
