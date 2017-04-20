@@ -58,13 +58,11 @@ defmodule Fluxspace.Lib.Attributes.Scriptable do
     end
 
     def encode_pid(pid) do
-      :erlang.pid_to_list(pid)
-      |> :erlang.list_to_binary()
+      :erlang.term_to_binary(pid)
     end
 
     def decode_pid(pid) do
-      :erlang.binary_to_list(pid)
-      |> :erlang.list_to_pid()
+      :erlang.binary_to_term(pid)
     end
   end
 end
