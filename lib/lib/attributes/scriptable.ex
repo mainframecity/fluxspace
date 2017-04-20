@@ -8,6 +8,7 @@ defmodule Fluxspace.Lib.Attributes.Scriptable do
   """
 
   alias Fluxspace.Lib.Attributes.Scriptable
+  alias Fluxspace.ScriptContext
 
   defstruct [
     lua_state: nil,
@@ -26,20 +27,16 @@ defmodule Fluxspace.Lib.Attributes.Scriptable do
     use Entity.Behaviour
 
     def init(entity, attributes) do
+      lua_code = Map.get(attributes, :lua_code, "")
+
       lua_state =
-        Lua.State.new()
-        |> Lua.set_global(:self, encode_pid(self()))
-        |> Lua.set_global(:fluxspace, %{
-          send_message: fn(state, [pid, message]) ->
-            send(decode_pid(pid), {:send_message, [message, "\r\n"]})
-            {state, [true]}
-          end
-        })
-        |> Lua.exec!(Map.get(attributes, :lua_code, ""))
+        ScriptContext.new()
+        |> ScriptContext.add_context()
+        |> ScriptContext.load_code(lua_code)
 
       scriptable = %Scriptable{
         lua_state: lua_state,
-        lua_code: Map.get(attributes, :lua_code, "")
+        lua_code: lua_code
       }
 
       {:ok, put_attribute(entity, scriptable)}
@@ -48,23 +45,12 @@ defmodule Fluxspace.Lib.Attributes.Scriptable do
     def handle_event({:look_from, looker_pid}, state) do
       scriptable = get_attribute(state, Scriptable)
 
-      case Lua.get_global(scriptable.lua_state, :handle_look_from) do
-        {_, nil} ->
-          {:ok, state}
-        {_, _function} ->
+      if ScriptContext.function_exists?(scriptable.lua_state, :handle_look_from) do
           {new_lua_state, _} =
-            Lua.call_function!(scriptable.lua_state, :handle_look_from, [encode_pid(looker_pid)])
+            ScriptContext.call_function(scriptable.lua_state, :handle_look_from, [ScriptContext.encode_pid(looker_pid)])
 
           {:ok, put_attribute(state, %{ scriptable | lua_state: new_lua_state })}
       end
-    end
-
-    def encode_pid(pid) do
-      :erlang.term_to_binary(pid)
-    end
-
-    def decode_pid(pid) do
-      :erlang.binary_to_term(pid)
     end
   end
 end
