@@ -80,7 +80,8 @@ defmodule Fluxspace.Entrypoints.Client do
 
       {:noreply, new_state}
     else
-      Fluxspace.Commands.Index.perform(normalized_message, self(), state.player_pid)
+      send(state.player_pid, {:receive_message, normalized_message})
+      # Fluxspace.Commands.Index.perform(normalized_message, self(), state.player_pid)
 
       {:noreply, state}
     end

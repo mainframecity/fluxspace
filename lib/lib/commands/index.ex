@@ -4,37 +4,14 @@ defmodule Fluxspace.Commands.Index do
   alias Fluxspace.Entrypoints.{Client, ClientGroup}
   alias Fluxspace.Lib.Attributes
 
-  @help """
-  ------------------------------
-  Welcome to Fluxspace.
-
-  [DEBUG]
-  spawn <name>, <description> - Debug command to spawn an entity in the current room.
-
-  [NORMAL]
-  help - Display this message.
-  say <message> - Say a message.
-  look - Look around the room.
-  look at <name> - Look at a thing.
-  whisper to <name> <message> - Whisper a message to someone.
-  logout - Logs you out.
-  ------------------------------
-
-  """
-
   commands do
     command "spawn (?<name>.+), (?<description>.+)", &__MODULE__.spawn/4
-    command "help", &__MODULE__.help/4
     command "say (?<message>.+)", &__MODULE__.say/4
     command "look at (?<subject>.+)", &__MODULE__.look_at/4
     command "look", &__MODULE__.look/4
     command "whisper to (?<subject>[^\s]+) (?<message>.+)", &__MODULE__.whisper_to/4
     command "logout", &__MODULE__.logout/4
     command "(.*?)", &__MODULE__.noop/4
-  end
-
-  def help(_, _, _, player_pid) do
-    Attributes.Clientable.send_message(player_pid, @help)
   end
 
   def say(_, %{"message" => message}, _, player_pid) do

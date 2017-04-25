@@ -10,7 +10,9 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
   alias Fluxspace.Lib.Attributes.Clientable
 
   defstruct [
-    client_pid: nil
+    client_pid: nil,
+    lua_state: nil,
+    commands: %{}
   ]
 
   @doc """
@@ -47,7 +49,17 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
     alias Fluxspace.Entrypoints.Client
 
     def init(entity, attributes) do
-      {:ok, put_attribute(entity, Map.merge(%Clientable{}, attributes))}
+      lua_files = Fluxspace.ScriptContext.ls_r()
+      initial_state = Lua.State.new() |> Fluxspace.ScriptContext.add_context()
+      lua_state = Enum.reduce(lua_files, initial_state, fn(lua_file, state) ->
+        Lua.exec_file!(state, lua_file)
+      end)
+
+      clientable = %Clientable{
+        lua_state: lua_state
+      }
+
+      {:ok, put_attribute(entity, Map.merge(clientable, attributes))}
     end
 
     def handle_call({:send_message, message}, entity) do
@@ -58,6 +70,50 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
     def handle_event({:send_message, message}, entity) do
       send_message(entity, message)
       {:ok, entity}
+    end
+
+    def handle_event({:receive_message, message}, entity) do
+      [first_word | _] = String.split(message)
+
+      clientable = get_attribute(entity, Clientable)
+      command_group = Map.get(clientable.commands, first_word)
+
+      if command_group do
+        first_matching_command =
+          Enum.find_value(Enum.reverse(command_group), fn({regex, _func} = value) ->
+            compiled_regex = Regex.compile!(regex)
+
+            case Regex.named_captures(compiled_regex, message) do
+              nil -> false
+              captures -> {value, captures}
+            end
+          end)
+
+        if first_matching_command do
+          {{_, func}, captures} = first_matching_command
+
+          # @todo(vy): String.to_atom
+          Lua.call_function!(clientable.lua_state, String.to_atom(func), [captures, Fluxspace.ScriptContext.encode_pid(self())])
+        end
+      end
+
+      {:ok, entity}
+    end
+
+    def handle_event({:add_command, command_name, regex, function_name}, entity) do
+      new_entity = update_attribute(entity, Clientable, fn(clientable) ->
+        initial_command_state = [{regex, function_name}]
+        new_commands = Map.update(clientable.commands, command_name, initial_command_state, fn(command_group) ->
+          [{regex, function_name} | command_group]
+        end)
+
+        %Clientable{
+          clientable |
+          commands: new_commands
+        }
+      end)
+
+      {:ok, new_entity}
     end
 
     def send_message(entity, message) do
