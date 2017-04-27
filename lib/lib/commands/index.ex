@@ -6,7 +6,7 @@ defmodule Fluxspace.Commands.Index do
 
   commands do
     command "spawn (?<name>.+), (?<description>.+)", &__MODULE__.spawn/4
-    command "say (?<message>.+)", &__MODULE__.say/4
+    # command "say (?<message>.+)", &__MODULE__.say/4
     command "look at (?<subject>.+)", &__MODULE__.look_at/4
     command "look", &__MODULE__.look/4
     command "whisper to (?<subject>[^\s]+) (?<message>.+)", &__MODULE__.whisper_to/4

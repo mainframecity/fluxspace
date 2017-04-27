@@ -74,6 +74,7 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
 
     def handle_event({:receive_message, message}, entity) do
       [first_word | _] = String.split(message)
+      rest_of_message = String.trim_leading(message, "#{first_word} ")
 
       clientable = get_attribute(entity, Clientable)
       command_group = Map.get(clientable.commands, first_word)
@@ -83,7 +84,7 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
           Enum.find_value(Enum.reverse(command_group), fn({regex, _func} = value) ->
             compiled_regex = Regex.compile!(regex)
 
-            case Regex.named_captures(compiled_regex, message) do
+            case Regex.named_captures(compiled_regex, rest_of_message) do
               nil -> false
               captures -> {value, captures}
             end
