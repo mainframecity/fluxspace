@@ -15,6 +15,10 @@ defmodule Fluxspace.Lib.RoomTest do
       Entity.remove_behaviour(entity_pid, Test.Behaviour)
     end
 
+    def get_parent(entity_pid) do
+      Entity.call_behaviour(entity_pid, Test.Behaviour, :get_parent)
+    end
+
     defmodule Behaviour do
       use Entity.Behaviour
 
@@ -31,6 +35,10 @@ defmodule Fluxspace.Lib.RoomTest do
       def handle_event(:to_room, entity) do
         Radio.notify_all(self(), :from_entity)
         {:ok, entity}
+      end
+
+      def handle_call(:get_parent, entity) do
+        {:ok, entity.parent_pid, entity}
       end
     end
   end
@@ -76,5 +84,13 @@ defmodule Fluxspace.Lib.RoomTest do
   test "Cannot add a room to a room", %{room_pid: room_pid} do
     {:ok, _, room2_pid} = Room.create()
     assert :error == Room.add_entity(room_pid, room2_pid)
+  end
+
+  test "child entities know the room PID", %{room_pid: room_pid} do
+    {:ok, _entity_uuid, entity_pid} = Entity.start_plain()
+    entity_pid |> Test.register(%{test_pid: self()})
+    room_pid |> Room.add_entity(entity_pid)
+
+    assert room_pid == Test.get_parent(entity_pid)
   end
 end

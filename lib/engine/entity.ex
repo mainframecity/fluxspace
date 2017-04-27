@@ -6,7 +6,7 @@ defmodule Fluxspace.Entity do
   convenience functions for interacting with it.
   """
 
-  defstruct uuid: "", attributes: %{}
+  defstruct uuid: "", attributes: %{}, parent_pid: nil
 
   use GenSync
 
@@ -220,6 +220,18 @@ defmodule Fluxspace.Entity do
 
         def handle_event(:kill, entity) do
           {:stop_process, :normal, entity}
+        end
+
+        def handle_event({:add_parent, parent_pid}, entity) do
+          {:ok, %{entity | parent_pid: parent_pid}}
+        end
+
+        def handle_event({:remove_parent, parent_pid}, entity) do
+          if entity.parent_pid == parent_pid do
+            {:ok, %{entity | parent_pid: nil}}
+          else
+            {:ok, entity}
+          end
         end
 
         defoverridable [init: 2]

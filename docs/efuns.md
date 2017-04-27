@@ -14,3 +14,17 @@ Example:
 ```
 fluxspace.send_message(player_pid, "You enter the room.")
 ```
+
+> `fluxspace.add_command(command_name, regex, function_name)`
+
+Adds a new command accessible by the player.
+
+Example:
+
+```
+function moo(args, player_pid)
+  fluxspace.send_message(player_pid, "MOOOOOOOO!")
+end
+
+fluxspace.add_command("moo", "(.*?)", "moo")
+```
