@@ -7,7 +7,6 @@ defmodule Fluxspace.Commands.Index do
   commands do
     command "spawn (?<name>.+), (?<description>.+)", &__MODULE__.spawn/4
     command "look at (?<subject>.+)", &__MODULE__.look_at/4
-    command "look", &__MODULE__.look/4
     command "whisper to (?<subject>[^\s]+) (?<message>.+)", &__MODULE__.whisper_to/4
     command "logout", &__MODULE__.logout/4
     command "(.*?)", &__MODULE__.noop/4
@@ -19,27 +18,6 @@ defmodule Fluxspace.Commands.Index do
 
     Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "#{name} logged out.\r\n"})
     Client.stop_all(client)
-  end
-
-  def look(_, _, _, player_pid) do
-    room_pid = ClientGroup.get_room()
-    players = Fluxspace.Lib.Room.get_entities(room_pid)
-    player_names = Enum.map(players, fn(entity_pid) ->
-        name = Attributes.Appearance.get_name(entity_pid)
-
-        if Fluxspace.Lib.Player.is_player?(entity_pid) do
-          name
-        else
-          Fluxspace.Determiners.determine(name)
-        end
-      end)
-      |> Enum.join(", ")
-
-    room_description = Attributes.Appearance.get_long_description(room_pid)
-    name = Attributes.Appearance.get_name(player_pid)
-
-    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "#{name} looks around the room.\n"})
-    Attributes.Clientable.send_message(player_pid, "#{room_description} It contains: #{player_names}\n")
   end
 
   def look_at(_, %{"subject" => entity_name}, _, player_pid) do

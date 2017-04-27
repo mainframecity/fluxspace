@@ -1,5 +1,6 @@
 defmodule Fluxspace.Efuns.Fluxspace do
   alias Fluxspace.ScriptContext
+  alias Fluxspace.Lib.Attributes
 
   def context() do
     {:fluxspace, %{
@@ -21,7 +22,7 @@ defmodule Fluxspace.Efuns.Fluxspace do
       end,
       broadcast_message: fn(state, [encoded_room_pid, message]) ->
         room_pid = ScriptContext.decode_pid(encoded_room_pid)
-        Fluxspace.Lib.Attributes.Inventory.notify_except(room_pid, self(), {:send_message, [message, "\r\n"]})
+        Attributes.Inventory.notify_except(room_pid, self(), {:send_message, [message, "\r\n"]})
         {state, [true]}
       end,
       add_command: fn(state, [command_name, regex, function_name]) ->
@@ -42,6 +43,31 @@ defmodule Fluxspace.Efuns.Fluxspace do
         else
           {state, [[]]}
         end
+      end,
+
+      is_player: fn(state, [encoded_pid]) ->
+        pid = ScriptContext.decode_pid(encoded_pid)
+        is_player = Fluxspace.Lib.Player.is_player?(pid)
+
+        {state, [is_player]}
+      end,
+
+			add_determiner: fn(state, [noun]) ->
+        determined_noun = Fluxspace.Determiners.determine(noun)
+
+        {state, [determined_noun]}
+      end,
+
+      get_name: fn(state, [encoded_pid]) ->
+        pid = ScriptContext.decode_pid(encoded_pid)
+        name = Attributes.Appearance.get_name(pid)
+        {state, [name]}
+      end,
+
+      get_long_description: fn(state, [encoded_pid]) ->
+        pid = ScriptContext.decode_pid(encoded_pid)
+        description = Attributes.Appearance.get_long_description(pid)
+        {state, [description]}
       end
     }}
   end
