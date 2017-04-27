@@ -33,7 +33,7 @@ defmodule Fluxspace.Mixfile do
       {:postgrex, ">= 0.0.0"},
       {:ecto, "~> 2.1"},
       {:comeonin, "~> 3.0"},
-      {:exlua, github: "bendiken/exlua", branch: "master"},
+      {:exlua, github: "andrewvy/exlua", branch: "master"},
       {:luerl, github: "bendiken/luerl", branch: "exlua", override: true},
       {:edeliver, "~> 1.4.2"},
       {:distillery, ">= 0.8.0", warn_missing: false},

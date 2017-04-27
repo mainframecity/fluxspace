@@ -93,7 +93,13 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
           {{_, func}, captures} = first_matching_command
 
           # @todo(vy): String.to_atom
-          Lua.call_function!(clientable.lua_state, String.to_atom(func), [captures, Fluxspace.ScriptContext.encode_pid(self())])
+          function_params = [
+            captures,
+            Fluxspace.ScriptContext.encode_pid(self()),
+            Fluxspace.ScriptContext.encode_pid(entity.parent_pid)
+          ]
+
+          Lua.call_function!(clientable.lua_state, String.to_atom(func), function_params)
         end
       end
 

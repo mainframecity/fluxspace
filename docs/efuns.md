@@ -28,3 +28,23 @@ end
 
 fluxspace.add_command("moo", "(.*?)", "moo")
 ```
+
+> `fluxspace.get_entities(room_pid)`
+
+Gets a table of entities from the given room pid.
+
+Example:
+
+```
+local entities = fluxspace.get_entities(room_pid)
+```
+
+> `fluxspace.inspect(term)`
+
+For debugging use, IO.inspects a term.
+
+Example:
+
+```
+fluxspace.inspect("Hello World!")
+```

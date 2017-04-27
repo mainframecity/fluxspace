@@ -218,6 +218,10 @@ defmodule Fluxspace.Entity do
           {:stop_process, :normal, :ok, entity}
         end
 
+        def handle_call(:get_parent, entity) do
+          {:ok, entity.parent_pid, entity}
+        end
+
         def handle_event(:kill, entity) do
           {:stop_process, :normal, entity}
         end
