@@ -6,28 +6,11 @@ defmodule Fluxspace.Commands.Index do
 
   commands do
     command "spawn (?<name>.+), (?<description>.+)", &__MODULE__.spawn/4
-    # command "say (?<message>.+)", &__MODULE__.say/4
     command "look at (?<subject>.+)", &__MODULE__.look_at/4
     command "look", &__MODULE__.look/4
     command "whisper to (?<subject>[^\s]+) (?<message>.+)", &__MODULE__.whisper_to/4
     command "logout", &__MODULE__.logout/4
     command "(.*?)", &__MODULE__.noop/4
-  end
-
-  def say(_, %{"message" => message}, _, player_pid) do
-    room_pid = ClientGroup.get_room()
-    name = Attributes.Appearance.get_name(player_pid)
-
-    formatted_message = [
-      "\n",
-      name,
-      " says, \"",
-      message,
-      "\"\n"
-    ]
-
-    Attributes.Clientable.send_message(player_pid, "You say, \"#{message}\".\r\n")
-    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, formatted_message})
   end
 
   def logout(_, _, client, player_pid) do

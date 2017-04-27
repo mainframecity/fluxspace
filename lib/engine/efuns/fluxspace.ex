@@ -19,8 +19,9 @@ defmodule Fluxspace.Efuns.Fluxspace do
         send(ScriptContext.decode_pid(pid), {:send_message, [message, "\r\n"]})
         {state, [true]}
       end,
-      broadcast_message: fn(state, [room_pid, message]) ->
-        Fluxspace.Lib.Attributes.Inventory.notify_except(room_pid, self(), {:send_message, message})
+      broadcast_message: fn(state, [encoded_room_pid, message]) ->
+        room_pid = ScriptContext.decode_pid(encoded_room_pid)
+        Fluxspace.Lib.Attributes.Inventory.notify_except(room_pid, self(), {:send_message, [message, "\r\n"]})
         {state, [true]}
       end,
       add_command: fn(state, [command_name, regex, function_name]) ->

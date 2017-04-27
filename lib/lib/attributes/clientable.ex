@@ -100,7 +100,13 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
             Fluxspace.ScriptContext.encode_pid(entity.parent_pid)
           ]
 
-          Lua.call_function!(clientable.lua_state, String.to_atom(func), function_params)
+          appearance = get_attribute(entity, Fluxspace.Lib.Attributes.Appearance)
+
+          modified_state =
+            clientable.lua_state
+            |> Lua.set_global(:name, appearance.name)
+
+          Lua.call_function!(modified_state, String.to_atom(func), function_params)
         end
       end
 
