@@ -39,7 +39,7 @@ defmodule Fluxspace.ScriptContext do
     :erlang.binary_to_term(pid)
   end
 
-  def ls_r(path \\ "lib/scripts/") do
+  def ls_r(path \\ "scripts/") do
     cond do
       File.regular?(path) -> [path]
       File.dir?(path) ->
