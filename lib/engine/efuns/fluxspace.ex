@@ -68,6 +68,12 @@ defmodule Fluxspace.Efuns.Fluxspace do
         pid = ScriptContext.decode_pid(encoded_pid)
         description = Attributes.Appearance.get_long_description(pid)
         {state, [description]}
+      end,
+
+      kill: fn(state, [encoded_pid]) ->
+        pid = ScriptContext.decode_pid(encoded_pid)
+        send(pid, :kill)
+        {state, [true]}
       end
     }}
   end

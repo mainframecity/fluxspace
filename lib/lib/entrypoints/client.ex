@@ -123,10 +123,6 @@ defmodule Fluxspace.Entrypoints.Client do
     {:reply, :ok, state}
   end
 
-  def terminate(_reason, _state) do
-    Fluxspace.Entrypoints.ClientGroup.remove_client(self())
-  end
-
   def normalize_message(message) do
     String.trim(message)
   end

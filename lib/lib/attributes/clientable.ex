@@ -156,12 +156,16 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
       end
     end
 
+    def terminate(_reason, entity) do
+      clientable = get_attribute(entity, Clientable)
+      Client.stop_all(clientable.client_pid)
+      {:ok, entity}
+    end
+
     def send_message(entity, message) do
       clientable = get_attribute(entity, Clientable)
       Client.send_message(clientable.client_pid, message)
     end
-
-    {:error, [{2, :luerl_parse, ['syntax error before: ', [[60, 60, '"  ------------------------------\\n  Welcome to Fluxspace.\\n\\n  [DEBUG]\\n  spawn <name>, <description> - Debug command to spawn an entity in the current room.\\n\\n  [NORMAL]\\n  help - Display this message.\\n  say <message> - Say a message.\\n  look - Look around the room.\\n  look at <name> - Look at a thing.\\n  whisper to <name> <message> - Whisper a message to someone.\\n  logout - Logs you out.\\n  ------------------------------\\n  "', 62, 62]]]}], []}
 
     @spec load_lua_context() :: {:ok, Lua.State.t} | {:error, String.t}
     def load_lua_context() do
@@ -178,6 +182,8 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
             formatted_message = to_string(["On #{lua_file}:#{line_number}, ", message])
 
             {:halt, {:error, formatted_message}}
+          _ ->
+            {:cont, {:ok, state}}
         end
       end)
     end

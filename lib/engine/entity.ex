@@ -180,7 +180,9 @@ defmodule Fluxspace.Entity do
         use GenSync
         alias Fluxspace.Entity
 
-        def init(entity, _args), do: {:ok, entity}
+        def init(entity, _args) do
+          {:ok, entity}
+        end
 
         def has_attribute?(%Entity{attributes: attrs}, attribute_type) when is_atom(attribute_type),
         do: Map.has_key?(attrs, attribute_type)
@@ -216,10 +218,6 @@ defmodule Fluxspace.Entity do
 
         def handle_call(:kill, entity) do
           {:stop_process, :normal, :ok, entity}
-        end
-
-        def handle_call(:get_parent, entity) do
-          {:ok, entity.parent_pid, entity}
         end
 
         def handle_event(:kill, entity) do

@@ -1,23 +1,14 @@
 defmodule Fluxspace.Commands.Index do
   use Fluxspace.Commands.Macros
 
-  alias Fluxspace.Entrypoints.{Client, ClientGroup}
+  alias Fluxspace.Entrypoints.ClientGroup
   alias Fluxspace.Lib.Attributes
 
   commands do
     command "spawn (?<name>.+), (?<description>.+)", &__MODULE__.spawn/4
     command "look at (?<subject>.+)", &__MODULE__.look_at/4
     command "whisper to (?<subject>[^\s]+) (?<message>.+)", &__MODULE__.whisper_to/4
-    command "logout", &__MODULE__.logout/4
     command "(.*?)", &__MODULE__.noop/4
-  end
-
-  def logout(_, _, client, player_pid) do
-    room_pid = ClientGroup.get_room()
-    name = Attributes.Appearance.get_name(player_pid)
-
-    Attributes.Inventory.notify_except(room_pid, player_pid, {:send_message, "#{name} logged out.\r\n"})
-    Client.stop_all(client)
   end
 
   def look_at(_, %{"subject" => entity_name}, _, player_pid) do
