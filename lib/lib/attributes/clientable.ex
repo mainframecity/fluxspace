@@ -7,6 +7,8 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
   real-world.
   """
 
+  require Logger
+
   alias Fluxspace.Lib.Attributes.Clientable
 
   defstruct [
@@ -49,15 +51,13 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
     alias Fluxspace.Entrypoints.Client
 
     def init(entity, attributes) do
-      lua_files = Fluxspace.ScriptContext.ls_r()
-      initial_state = Lua.State.new() |> Fluxspace.ScriptContext.add_context()
-      lua_state = Enum.reduce(lua_files, initial_state, fn(lua_file, state) ->
-        Lua.exec_file!(state, lua_file)
-      end)
+      {:ok, lua_state} = load_lua_context()
 
       clientable = %Clientable{
         lua_state: lua_state
       }
+
+      :fs.subscribe()
 
       {:ok, put_attribute(entity, Map.merge(clientable, attributes))}
     end
@@ -72,6 +72,7 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
       {:ok, entity}
     end
 
+    def handle_event({:receive_message, ""}, entity), do: {:ok, entity}
     def handle_event({:receive_message, message}, entity) do
       [first_word | _] = String.split(message)
       rest_of_message = String.trim_leading(message, "#{first_word} ")
@@ -129,9 +130,56 @@ defmodule Fluxspace.Lib.Attributes.Clientable do
       {:ok, new_entity}
     end
 
+    def handle_event({_pid, {:fs, :file_event}, {path, _event}}, entity) do
+      stringified_path = to_string(path)
+      relative_path = Path.relative_to_cwd(path)
+      is_command_script = String.contains?(stringified_path, "scripts/commands/")
+
+      # Reload context
+      if is_command_script do
+        case load_lua_context() do
+          {:error, error} ->
+            Logger.error(error)
+            {:ok, entity}
+          {:ok, new_lua_state} ->
+            IO.puts("Reloaded Lua file: #{relative_path}")
+            new_entity = update_attribute(entity, Clientable, fn(clientable) ->
+              %Clientable{
+                clientable |
+                lua_state: new_lua_state
+              }
+            end)
+            {:ok, new_entity}
+        end
+      else
+        {:ok, entity}
+      end
+    end
+
     def send_message(entity, message) do
       clientable = get_attribute(entity, Clientable)
       Client.send_message(clientable.client_pid, message)
+    end
+
+    {:error, [{2, :luerl_parse, ['syntax error before: ', [[60, 60, '"  ------------------------------\\n  Welcome to Fluxspace.\\n\\n  [DEBUG]\\n  spawn <name>, <description> - Debug command to spawn an entity in the current room.\\n\\n  [NORMAL]\\n  help - Display this message.\\n  say <message> - Say a message.\\n  look - Look around the room.\\n  look at <name> - Look at a thing.\\n  whisper to <name> <message> - Whisper a message to someone.\\n  logout - Logs you out.\\n  ------------------------------\\n  "', 62, 62]]]}], []}
+
+    @spec load_lua_context() :: {:ok, Lua.State.t} | {:error, String.t}
+    def load_lua_context() do
+      lua_files = Fluxspace.ScriptContext.ls_r()
+      initial_state = Lua.State.new() |> Fluxspace.ScriptContext.add_context()
+      Enum.reduce_while(lua_files, {:ok, initial_state}, fn(lua_file, {:ok, state}) ->
+        try do
+          {:cont, {:ok, Lua.exec_file!(state, lua_file)}}
+        rescue
+          match in [MatchError] ->
+            {:error, error_messages, _} = match.term
+            [first_error_message | _] = error_messages
+            {line_number, _, message} = first_error_message
+            formatted_message = to_string(["On #{lua_file}:#{line_number}, ", message])
+
+            {:halt, {:error, formatted_message}}
+        end
+      end)
     end
   end
 end
