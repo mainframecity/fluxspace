@@ -11,24 +11,33 @@ defmodule Fluxspace.Efuns.Fluxspace do
               Map.put(map, k, v)
             end)
             |> IO.inspect()
+          {:tref, _} = tref ->
+            Enum.reduce(:luerl.decode(tref, state.luerl), %{}, fn {k, v}, map ->
+              Map.put(map, k, v)
+            end)
+            |> IO.inspect()
           decoded_thing ->
             IO.inspect(decoded_thing)
         end
         {state, [true]}
       end,
+
       send_message: fn(state, [pid, message]) ->
         send(ScriptContext.decode_pid(pid), {:send_message, [message, "\r\n"]})
         {state, [true]}
       end,
+
       broadcast_message: fn(state, [encoded_room_pid, message]) ->
         room_pid = ScriptContext.decode_pid(encoded_room_pid)
         Attributes.Inventory.notify_except(room_pid, self(), {:send_message, [message, "\r\n"]})
         {state, [true]}
       end,
+
       add_command: fn(state, [command_name, regex, function_name]) ->
         send(self(), {:add_command, command_name, regex, function_name})
         {state, [true]}
       end,
+
       get_entities: fn(state, [encoded_room_pid]) ->
         if !is_nil(encoded_room_pid) do
           room_pid = ScriptContext.decode_pid(encoded_room_pid)
@@ -74,7 +83,11 @@ defmodule Fluxspace.Efuns.Fluxspace do
         pid = ScriptContext.decode_pid(encoded_pid)
         send(pid, :kill)
         {state, [true]}
-      end
+      end,
+
+      jaro_distance: fn(state, [name_a, name_b]) ->
+        {state, [String.jaro_distance(name_a, name_b)]}
+      end,
     }}
   end
 end
