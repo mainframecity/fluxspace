@@ -80,7 +80,8 @@ defmodule Fluxspace.Entrypoints.Client do
 
       {:noreply, new_state}
     else
-      Fluxspace.Commands.Index.do_command(normalized_message, self(), state.player_pid)
+      send(state.player_pid, {:receive_message, normalized_message})
+      # Fluxspace.Commands.Index.perform(normalized_message, self(), state.player_pid)
 
       {:noreply, state}
     end
@@ -120,10 +121,6 @@ defmodule Fluxspace.Entrypoints.Client do
     menu_module.call(self())
 
     {:reply, :ok, state}
-  end
-
-  def terminate(_reason, _state) do
-    Fluxspace.Entrypoints.ClientGroup.remove_client(self())
   end
 
   def normalize_message(message) do

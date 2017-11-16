@@ -38,4 +38,16 @@ defmodule Fluxspace.ScriptContext do
   def decode_pid(pid) do
     :erlang.binary_to_term(pid)
   end
+
+  def ls_r(path \\ "scripts/") do
+    cond do
+      File.regular?(path) -> [path]
+      File.dir?(path) ->
+        File.ls!(path)
+        |> Enum.map(&Path.join(path, &1))
+        |> Enum.map(&ls_r/1)
+        |> Enum.concat
+      true -> []
+    end
+  end
 end

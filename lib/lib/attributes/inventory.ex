@@ -38,7 +38,7 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
   Adds an Entity to this Inventory.
   """
   def add_entity(inventory_pid, item_pid) do
-    inventory_pid |> Radio.notify({:add_entity, item_pid})
+    inventory_pid |> Entity.call_behaviour(Inventory.Behaviour, {:add_entity, item_pid})
   end
 
   @doc """
@@ -88,14 +88,6 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
       inventory.entities
     end
 
-    def handle_event({:add_entity, item_pid}, entity) do
-      new_entity = update_attribute(entity, Inventory, fn(inventory) ->
-        %Inventory{inventory | entities: [item_pid | inventory.entities]}
-      end)
-
-      {:ok, new_entity}
-    end
-
     def handle_event({:notify_except, except_this_pid, message}, entity) do
       entities = get_entities(entity)
 
@@ -131,7 +123,21 @@ defmodule Fluxspace.Lib.Attributes.Inventory do
       {:ok, new_entity}
     end
 
+    def handle_call({:add_entity, item_pid}, entity) do
+      # The contained entity needs a reference to its parent (this Inventory's PID)
+      send(item_pid, {:add_parent, self()})
+
+      new_entity = update_attribute(entity, Inventory, fn(inventory) ->
+        %Inventory{inventory | entities: [item_pid | inventory.entities]}
+      end)
+
+      {:ok, :ok, new_entity}
+    end
+
     def handle_call({:remove_entity, item_pid}, entity) do
+      # The contained entity needs to clear the reference to its parent (this Inventory's PID)
+      send(item_pid, {:remove_parent, self()})
+
       new_entity = update_attribute(entity, Inventory, fn(inventory) ->
         %Inventory{inventory | entities: Enum.reject(inventory.entities, &(&1 == item_pid))}
       end)

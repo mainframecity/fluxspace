@@ -16,7 +16,19 @@ defmodule Fluxspace.Mixfile do
   def application do
     [
       mod: {Fluxspace, []},
-      applications: [:cowboy, :logger, :gproc, :uuid, :poison, :postgrex, :ecto, :comeonin, :exlua, :edeliver],
+      applications: [
+        :cowboy,
+        :logger,
+        :gproc,
+        :uuid,
+        :poison,
+        :postgrex,
+        :ecto,
+        :comeonin,
+        :fs,
+        :exlua,
+        :edeliver
+      ],
       loaded_applications: [:luerl]
     ]
   end
@@ -33,8 +45,9 @@ defmodule Fluxspace.Mixfile do
       {:postgrex, ">= 0.0.0"},
       {:ecto, "~> 2.1"},
       {:comeonin, "~> 3.0"},
-      {:exlua, github: "bendiken/exlua", branch: "master"},
+      {:exlua, github: "andrewvy/exlua", branch: "master"},
       {:luerl, github: "bendiken/luerl", branch: "exlua", override: true},
+      {:fs, "~> 0.9.1"},
       {:edeliver, "~> 1.4.2"},
       {:distillery, ">= 0.8.0", warn_missing: false},
     ]

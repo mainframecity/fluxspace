@@ -14,3 +14,37 @@ Example:
 ```
 fluxspace.send_message(player_pid, "You enter the room.")
 ```
+
+> `fluxspace.add_command(command_name, regex, function_name)`
+
+Adds a new command accessible by the player.
+
+Example:
+
+```
+function moo(args, player_pid)
+  fluxspace.send_message(player_pid, "MOOOOOOOO!")
+end
+
+fluxspace.add_command("moo", "(.*?)", "moo")
+```
+
+> `fluxspace.get_entities(room_pid)`
+
+Gets a table of entities from the given room pid.
+
+Example:
+
+```
+local entities = fluxspace.get_entities(room_pid)
+```
+
+> `fluxspace.inspect(term)`
+
+For debugging use, IO.inspects a term.
+
+Example:
+
+```
+fluxspace.inspect("Hello World!")
+```
